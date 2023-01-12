@@ -1,0 +1,74 @@
+body {
+  background: #eee;
+  --bs-body-font-size: 1.5rem;
+}
+
+.container {
+  max-width: 2400px;
+  background: white;
+}
+
+.input-section{
+  display: flex;
+  flex-direction: column;
+}
+
+.input-text{
+  margin-top: 10px;
+}
+
+.row1, .row2{
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  margin: 20px;
+  height:30px;
+}
+
+.data, .classCol, .hyperparameter{
+  display: flex;
+  align-items: center;
+}
+
+
+#dataTitle, #classCol{
+  margin: 0px 20px;
+  width:300px;
+}
+
+#pcaIter, #randIter, #perplexity, #iteration, #learningRate, #minSupport {
+  margin: 0px 20px 0px 10px;
+  width: 100px;
+}
+
+.runBtn, .resetBtn {
+  margin: 0px 10px;
+}
+
+#runBtn{
+  width:100px;
+}
+
+
+.brushed {
+  stroke-width: 1;
+  stroke: gray;
+}
+
+.best {
+  font-weight: bold;
+}
+
+.plots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+#plot {
+  margin: 10px;
+}
+
+#legend {
+  margin: 10px 50px;
+}
