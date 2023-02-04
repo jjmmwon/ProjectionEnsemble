@@ -14,9 +14,6 @@ class GraphGenerator:
                  uid,
                  embeddings,
                  data_title,
-                 perplexity=-1,
-                 iteration=-1,
-                 learning_rate=-1,
                  k=5):
 
         self.data_title = data_title
@@ -25,22 +22,18 @@ class GraphGenerator:
         self.path = f'./static/result/{data_title}_{self.uid}'
         self.k = k
         
-        self.perplexity = perplexity
-        self.iteration = iteration
-        self.learning_rate= learning_rate
-
         self.data = None
         self.graph = None
-        self.current_file = None
+        self.graph_list = []
         self.dist_matrix = None
 
     def load_files(self):
         path = self.path + '/*.csv'
         self.csv_files = glob.glob(path)
 
-    def distant_matrix(self): 
+    def distance_matrix(self): 
         """
-        generate distant matrix
+        generate distance matrix
         """
         M = self.data.shape[0]
         self.dist_matrix = np.zeros((M,M))
@@ -60,36 +53,51 @@ class GraphGenerator:
                 self.graph.AddEdge(int(idx), int(nearest_neighbor[i]))
             idx += 1
         
+        self.graph_list.append(self.graph)
+        
 
-    def save_graph(self):
-        """
-        save graph file using snap lib
-        """
-        save_path = self.current_file[:-4]
+    # def save_graph(self):
+    #     """
+    #     save graph file using snap lib
+    #     """
+    #     save_path = self.current_file[:-4]
 
-        FOut = snap.TFOut(f'{save_path}_k_{self.k}.graph')
-        self.graph.Save(FOut)
-        FOut.Flush()
+    #     FOut = snap.TFOut(f'{save_path}_k_{self.k}.graph')
+    #     self.graph.Save(FOut)
+    #     FOut.Flush()
 
     def run(self):
         """
         make distant matrix -> clustering -> save graph
         """
-        self.load_files()
-        for csv_file in tqdm(self.csv_files):
-            self.current_file = csv_file
-            data = pd.read_csv(self.current_file)
+        #self.load_files()
+        # for csv_file in tqdm(self.csv_files):
+        #     self.current_file = csv_file
+        #     data = pd.read_csv(self.current_file)
                         
-            if 'class' in data.columns:
-                data = data.drop('class', axis=1)
+        #     if 'class' in data.columns:
+        #         data = data.drop('class', axis=1)
 
+        #     data = data.to_numpy()
+        #     self.data = data[:, 1:]
+        #     print(self.data)
+        #     self.distant_matrix()
+        #     self.kNN()
+        #     self.save_graph()
+
+        for e in self.embeddings:
+            data = e["embedding"]
+
+            if "class" in data.columns:
+                data = data.drop('class', axis=1)
+            
             data = data.to_numpy()
-            self.data = data[:, 1:]
-            print(self.data)
-            self.distant_matrix()
+            self.data = data[:,1:]
+            self.distance_matrix()
             self.kNN()
-            self.save_graph()
-            #self.save_graphViz()
+            #self.save_graph()
+        
+        return self.graph_list
         
 
 def argparsing():

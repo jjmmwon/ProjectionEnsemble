@@ -94,12 +94,9 @@ class TSNE:
             max_iter = self.max_iter,
             learning_rate = self.learning_rate)
 
+        self.embedded_data , loss = Z 
         if return_loss :
-            self.embedded_data , loss = Z            
             self.loss[self.init].append(loss[-1])
-
-        else:
-            self.embedded_data = Z
         
 
     def save_embedded_data(self):
@@ -111,13 +108,13 @@ class TSNE:
             os.mkdir(path)
 
         self.embedded_data = pd.DataFrame(self.embedded_data)
-        if self.target:
+        if self.target is not None:
             self.embedded_data['class'] = self.target
 
-        hyperparameter = { "perplexity": self.perplexity,
+        hyperparameter = { "init" : self.init,
+                           "perplexity": self.perplexity,
                            "iteration": self.max_iter,
-                           "learning rate": self.learning_rate,
-                           "init" : self.init}
+                           "learning rate": self.learning_rate,}
         
         self.embeddings.append({"hyperparameter": hyperparameter,
                                 "embedding":self.embedded_data})
@@ -133,10 +130,8 @@ class TSNE:
     def save_result(self):
         result = {'Shape' : {'Instances': self.instances, "Attributes" : self.attributes}}
 
-        if self.kwargs == {}:
-            result['Hyperparameter'] = "Default"
-        else:
-            result['Hyperparameter'] = {
+        
+        result['Hyperparameter'] = {
                 "perplexity" : self.perplexity,
                 "iteration": self.max_iter,
                 "learning rate": self.learning_rate
@@ -171,7 +166,7 @@ class TSNE:
             self.fit(init = 'random', return_loss = True)
             self.save_embedded_data()
         
-        self.save_result()
+        #self.save_result()
         return self.embeddings
 
 

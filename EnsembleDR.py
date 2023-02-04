@@ -2,9 +2,6 @@ from TSNE import TSNE
 from GraphGen import GraphGenerator
 from FSM import FSM
 from Procrustes import Procrustes
-import os
-import glob
-import json
 
 class EnsembleDR:
     def __init__(self,
@@ -43,37 +40,40 @@ class EnsembleDR:
                     max_iter=self.iteration,
                     learning_rate=self.learning_rate,
                     class_col=self.class_col)
-        tsne.run()
+
+        self.embeddings = tsne.run()
 
     def generate_graph(self):
         gg = GraphGenerator(uid = self.uid,
+                            embeddings=self.embeddings,
                             data_title=self.title,
-                            perplexity=self.perplexity,
-                            iteration=self.iteration,
-                            learning_rate=self.learning_rate,
                             k=self.k)
-        gg.run()
+
+        self.graphs = gg.run()
         
 
     def run_FSM(self):
-        fsm = FSM(graph_title=self.title, perplexity=self.perplexity, iteration=self.iteration, learning_rate=self.learning_rate, min_supports=self.min_supports, k=self.k)
-        self.FSMresults = fsm.run()
+        fsm = FSM(graphs=self.graphs,
+                  graph_title=self.title,
+                  min_supports=self.min_supports,
+                  k=self.k)
+
+        self.fsm_results = fsm.run()
         
 
     def run_procrustes(self):
-        p = Procrustes(title = self.title, perplexity = self.perplexity, iteration = self.iteration, learning_rate = self.learning_rate)
-        self.DRresults = p.run()
+        p = Procrustes(embeddings = self.embeddings, title = self.title)
         
-    def resultToJson(self):
-        self.DRresults.update(self.FSMresults)
+        self.DR_results = p.run()
 
     def run(self):
-        self.embeddings = self.run_DR()
+        self.run_DR()
         self.generate_graph()
         self.run_FSM()
         self.run_procrustes()
-        self.resultToJson()
-        return self.DRresults
+
+        self.DR_results.update(self.fsm_results)
+        return self.DR_results
 
 
 def main():

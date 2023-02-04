@@ -3,20 +3,15 @@ import { Scatterplot } from "./Scatterplot.mjs";
 //import { ResultTable } from "./Table.mjs";
 //import { Procrustes } from "./Procrustes.mjs";
 
-let title, perp, iter, lr, pca, random, minSup, resultTable;
-let init = true;
-
-const dataTitle = document.getElementById("dataTitle");
-const pcaIter = document.getElementById("pcaIter");
-const randIter = document.getElementById("randIter");
-const perplexity = document.getElementById("perplexity");
-const iteration = document.getElementById("iteration");
-const learningRate = document.getElementById("learningRate");
-const minSupport = document.getElementById("minSupport");
-
-//resultTable = new ResultTable("#result-table");
-
-let data, frqSubG;
+let title,
+    perplexity,
+    iteration,
+    learningRate,
+    pcaIteration,
+    randomIteration,
+    minSupport,
+    data = [],
+    frqSubG;
 
 async function Update() {
   /*
@@ -24,19 +19,33 @@ async function Update() {
     -> update url and data
   */
   
-  title = dataTitle.options[dataTitle.selectedIndex].value;
-  perp = perplexity.value;
-  iter = iteration.value;
-  lr = learningRate.value;
-  pca = pcaIter.value;
-  random = randIter.value;
-  minSup = minSupport.value;
+  title = d3.select("#dataTitle").property("value");
+  perplexity = d3.select("#perplexity").property("value");
+  iteration = d3.select("#iteration").property("value");
+  learningRate = d3.select("#learningRate").property("value");
+  pcaIteration = d3.select("#pcaIter").property("value");
+  randomIteration = d3.select("#randIter").property("value");
+  minSupport = d3.select("#minSupport").property("value");
 
-  let url = `http://127.0.0.1:50001/ensembleDR?title=${title}&perp=${perp}&iter=${iter}&lr=${lr}&pca=${pca}&random=${random}&min_sup=${minSup}`;
+  let url = 
 
-  console.log(url);
-
-  await dataLoad(url)
+  await d3.json(`http://127.0.0.1:50001/ensembleDR?`
+                + `title=${title}`
+                + `&perp=${perp}`
+                + `&iter=${iter}`
+                + `&lr=${lr}`
+                + `&pca=${pca}`
+                + `&random=${random}`
+                + `&min_sup=${minSup}`)
+          .then((d)=>{
+                  frqSubG = d.FSM;
+                for(let i=0; i < d["DR"].length; i++){
+                  data[i] = d["DR"][i];
+                  // data[i][""] = d["DR"][i]["Embeddings"]["idx"];
+                  // data[i]["0"] = d["DR"][i]["Embeddings"]["0"];
+                  // data[i]["1"] = d["DR"][i]["Embeddings"]["1"];
+                  // data[i]["class"] = d["DR"][i]["Embeddings"]["class"];
+                }})
     
   drawScatterplot();
   frequentSubgraph(frqSubG, minSup);  
@@ -129,7 +138,6 @@ function brushOccured(brushedIndex) {
 }
 
 function dataLoad(url) {
-  data = [];
   return d3.json(url).then((d)=>{
     console.log(d);
     console.log(d["FSM"]);

@@ -3,6 +3,7 @@
 
 from flask import Flask, render_template, request, jsonify
 from EnsembleDR import EnsembleDR
+import uuid
 
 app= Flask(__name__)
 
@@ -22,12 +23,7 @@ def ensembleDR():
 
     class_list = {'breast_cancer':'diagnosis','milknew':'Grade','mobile_price':'price_range',
             'fashion-mnist':'label','diabetes':'Diabetes_012'}
-
-    from datetime import datetime
-    int(datetime.now().timestamp())
-
-    import uuid
-    uuid.uuid4()
+    uid = uuid.uuid4().hex[:8]
 
 
 
@@ -35,18 +31,17 @@ def ensembleDR():
     if title in class_list:
         class_col = class_list[title]
 
-    ensemble_DR = EnsembleDR(title = title, 
-        class_col=class_col,
-        perplexity=perplexity,
-        iteration=iteration,
-        learning_rate=learning_rate,
-        min_supports=[min_supports],
-        pca_iter=pca_iter,
-        random_iter=random_iter)
+    ensemble_DR = EnsembleDR(uid=uid,
+                             title = title,
+                             class_col=class_col,
+                             perplexity=perplexity,
+                             iteration=iteration,
+                             learning_rate=learning_rate,
+                             min_supports=[min_supports],
+                             pca_iter=pca_iter,
+                             random_iter=random_iter)
 
     result = ensemble_DR.run()
-
-    
     return jsonify(result)
 
 

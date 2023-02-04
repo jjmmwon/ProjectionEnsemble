@@ -8,22 +8,26 @@ import numpy as np
 from tqdm import tqdm
 
 class FSM:
-    def __init__(self, graph_title, perplexity=-1, iteration=-1, learning_rate=-1, min_supports=8, k=5):
+    def __init__(self,
+                 graphs,
+                 graph_title,
+                 min_supports=8,
+                 k=5):
+                 
+        self.graphs = graphs
+        self.count = len(graphs)
         self.graph_title = graph_title
-        self.path = f'/home/myeongwon/mw_dir/Ensemble_DR/Ensemble_DR/static/result/{graph_title}/'
-        self.perplexity = perplexity
-        self.iteration = iteration
-        self.learning_rate= learning_rate
+        self.path = f'./static/result/{graph_title}/'
         self.min_supports = min_supports
         self.k = k
 
-        self.graph_set = []
+        self.data_len = len(graphs)
+        self.node_len = self.graphs[0].GetNodes()
+
         self.mother_graph = None
         
         self.FS_set = []
-        self.data_len = None
-        self.node_len = None
-        self.adjList = None
+        self.adjacency_list = None
 
         self.results = []
         
@@ -65,11 +69,9 @@ class FSM:
             self.graph_set.append(graph)
 
         # for i, graph in enumerate(self.graph_set):
-        #     print(i, graph.IsEdge(8, 15))
-        self.data_len = len(graph_files)
-        self.node_len = self.graph_set[0].GetNodes()    # 그래프 노드 개수
+        #     print(i, graph.IsEdge(8, 15)) # 그래프 노드 개수
 
-    def mother_graph_generate(self):
+    def generate_mother_graph(self):
         """
         graph의 모든 edge를 포함하는 mother graph 생성
         """
@@ -77,18 +79,18 @@ class FSM:
         for i in range(self.node_len):
             self.mother_graph.AddNode(i)
 
-        for graph in self.graph_set:
+        for graph in self.graphs:
             for edge in graph.Edges():
                 self.mother_graph.AddEdge(edge.GetSrcNId(),edge.GetDstNId())
 
-    def frequent_edge(self):
+    def detect_frequent_edge(self):
         """
         mother_graph의 모든 edge를 반복하며 min_supports 이상 나타나는 edge만 남겨둔다.
         """
         del_edges = []
         for edge in self.mother_graph.Edges():
             count = self.count
-            for graph in self.graph_set:
+            for graph in self.graphs:
                 if(not graph.IsEdge(*(edge.GetId()))):
                     count -= 1
                 if(count<self.min_sup):
@@ -98,14 +100,14 @@ class FSM:
         for del_edge in del_edges:
             self.mother_graph.DelEdge(*del_edge)
     
-    def adjList_gen(self):
+    def generate_adjacency_list(self):
         """
         mother_graph의 adjacency list 생성
         """
-        self.adjList = [[] for _ in range(self.node_len)]
+        self.adjacency_list = [[] for _ in range(self.node_len)]
         for edge in self.mother_graph.Edges():
-            self.adjList[edge.GetSrcNId()].append(edge.GetDstNId())
-            self.adjList[edge.GetDstNId()].append(edge.GetSrcNId())
+            self.adjacency_list[edge.GetSrcNId()].append(edge.GetDstNId())
+            self.adjacency_list[edge.GetDstNId()].append(edge.GetSrcNId())
 
     def get_subgraph(self):
         """
@@ -124,13 +126,13 @@ class FSM:
                 continue
             visit[node] = True
             subgraph = set([node])
-            subgraph.update(self.adjList[node])
+            subgraph.update(self.adjacency_list[node])
             while(True):
-                all_visited, next_node = self.isAll_visited(visit, subgraph)
+                all_visited, next_node = self.is_all_visited(visit, subgraph)
 
                 if all_visited:
                     break
-                subgraph.update(self.adjList[next_node])
+                subgraph.update(self.adjacency_list[next_node])
 
             subgraph = (list(subgraph))
             # if len(subgraph) <= 10:
@@ -146,7 +148,7 @@ class FSM:
 
 
 
-    def isAll_visited(self, visit, subgraph):
+    def is_all_visited(self, visit, subgraph):
         """
         모든 node를 방문했는지 확인하고 아닐시 해당 노드 return
         """
@@ -159,21 +161,21 @@ class FSM:
     def save_FS(self):
         json_path = self.path + f'FSM.json'
         json_data = {"FSM" : self.results}
-        with open(json_path, "w") as json_file:
-            json.dump(json_data, json_file, indent="\t")
+        # with open(json_path, "w") as json_file:
+        #     json.dump(json_data, json_file, indent="\t")
         
         return json_data
 
 
     def run(self):
         # self.load_dirs()
-        self.load_graphs()
+        #self.load_graphs()
         for ms in self.min_supports:
             self.min_sup = ms
             self.FS_set = []
-            self.mother_graph_generate()        
-            self.frequent_edge()
-            self.adjList_gen()
+            self.generate_mother_graph()        
+            self.detect_frequent_edge()
+            self.generate_adjacency_list()
             self.get_subgraph()
         return self.save_FS()
 
