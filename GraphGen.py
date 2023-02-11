@@ -4,10 +4,6 @@ import numpy as np
 import pandas as pd
 import snap
 import argparse
-from tqdm import tqdm
-
-#perplexity_15_max_iter_500_learning_rate_200_
-#perplexity_15_max_iter_500_learning_rate_auto_
 
 class GraphGenerator:
     def __init__(self,
@@ -31,7 +27,7 @@ class GraphGenerator:
         path = self.path + '/*.csv'
         self.csv_files = glob.glob(path)
 
-    def distance_matrix(self): 
+    def generate_distance_matrix(self): 
         """
         generate distance matrix
         """
@@ -84,16 +80,13 @@ class GraphGenerator:
         #     self.distant_matrix()
         #     self.kNN()
         #     self.save_graph()
-
         for e in self.embeddings:
             data = e["embedding"]
 
             if "class" in data.columns:
                 data = data.drop('class', axis=1)
-            
-            data = data.to_numpy()
-            self.data = data[:,1:]
-            self.distance_matrix()
+            self.data = data.to_numpy()
+            self.generate_distance_matrix()
             self.kNN()
             #self.save_graph()
         

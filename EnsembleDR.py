@@ -2,6 +2,7 @@ from TSNE import TSNE
 from GraphGen import GraphGenerator
 from FSM import FSM
 from Procrustes import Procrustes
+import json
 
 class EnsembleDR:
     def __init__(self,
@@ -73,6 +74,7 @@ class EnsembleDR:
         self.run_procrustes()
 
         self.DR_results.update(self.fsm_results)
+
         return self.DR_results
 
 

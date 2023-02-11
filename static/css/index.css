@@ -8,67 +8,61 @@ body {
   background: white;
 }
 
-.input-section{
-  display: flex;
-  flex-direction: column;
-}
-
-.input-text{
-  margin-top: 10px;
-}
-
-.row1, .row2{
-  display: flex;
-  align-items: center;
-  justify-content: start;
-  margin: 20px;
-  height:30px;
-}
-
-.data, .classCol, .hyperparameter{
+.data, .hyperparameter{
   display: flex;
   align-items: center;
 }
 
-
-#dataTitle, #classCol{
+#dataTitle{
   margin: 0px 20px;
   width:300px;
+  height:35px;
+  vertical-align: middle;
+  font-size: 15px;
 }
 
 #pcaIter, #randIter, #perplexity, #iteration, #learningRate, #minSupport {
   margin: 0px 20px 0px 10px;
-  width: 100px;
-}
-
-.runBtn, .resetBtn {
-  margin: 0px 10px;
+  width: 60px;
+  height:35px;
+  font-size:15px;
 }
 
 #runBtn{
-  width:100px;
+  width: 60px;
+  height: 35px;
+  font-size:15px;
+  font-weight: bold;
+}
+
+#resetBtn{
+  margin: 0px 10px;
+  width:80px;
+  height: 35px;
+  font-size:15px;
+  font-weight: bold;
+}
+
+.scatterplot{
+  width:260px;
+  height:260px;
+  margin:5px;
 }
 
 
 .brushed {
   stroke-width: 1;
+  r: 5;
   stroke: gray;
 }
 
-.best {
-  font-weight: bold;
+
+.classMode {
+  fill: rgb(255, 127, 14);
+  r: 3;
 }
 
-.plots {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-#plot {
-  margin: 10px;
-}
-
-#legend {
-  margin: 10px 50px;
+.FSMode {
+  fill: rgb(44, 160, 44);
+  r: 3;
 }

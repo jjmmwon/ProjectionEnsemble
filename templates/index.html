@@ -22,150 +22,147 @@
 
   <body>
     <header>
-      <nav class="container navbar navbar-light bg-light">
-        <div class="container-fluid">
-          <span class="navbar-brand mb-0 h1"
-            ><strong style="font-size: xx-large">Ensemble DR</strong></span
-          >
-        </div>
+      <nav class="container-fluid navbar navbar-light bg-light">
+          <span class="navbar-brand fs-4 fw-bold">Ensemble DR</span>
       </nav>
     </header>
 
     <main class="container">
-      <div class="input-section">
-        <div class="row1">
-          <div class="data">
-            <div class="input-text">
-              <h4><strong>Data:</strong></h4>
+      <div class="row">
+        <div class="col-9">
+          <div class="row input-section" style="margin-top:10px">
+            <div class="col-md-auto data">
+              <div class="fs-5 fw-bold input-text">
+                Data
+              </div>
+              <div>
+                <select
+                  id="dataTitle"
+                  class="form-select"
+                  aria-label="Default select example"
+                >
+                  <option selected value="breast_cancer">
+                    Breast Cancer(569)
+                  </option>
+                  <option value="milknew">Milk Quality(1059)</option>
+                  <option value="Cigar">Cigar(1380)</option>
+                  <option value="BudgetUK">Butget UK(1519)</option>
+                  <option value="BudgetItaly">Butget Italy(1729)</option>
+                  <option value="mobile_price">Mobile Price(2000)</option>
+                  <option value="black_politicians">
+                    Black Politicians(5593)
+                  </option>
+                  <option value="injury">Injury(6822)</option>
+                  <option value="fashion-mnist">Fashion-MNIST(5000)</option>
+                  <option value="Dry_Bean_Dataset">Dry Bean()</option>
+                  <option value="diabetes">Diabetes(15000)</option>
+                  <option value="mm_nhis">NHIS(18790)</option>
+                  <option value="labsup">Labsup(31857)</option>
+                </select>
+              </div>
             </div>
-            <div>
-              <select
-                id="dataTitle"
-                class="form-select"
-                aria-label="Default select example"
-                style="font-size: 20px"
-              >
-                <option selected value="breast_cancer">
-                  Breast Cancer(569)
-                </option>
-                <option value="milknew">Milk Quality(1059)</option>
-                <option value="Cigar">Cigar(1380)</option>
-                <option value="BudgetUK">Butget UK(1519)</option>
-                <option value="BudgetItaly">Butget Italy(1729)</option>
-                <option value="mobile_price">Mobile Price(2000)</option>
-                <option value="black_politicians">
-                  Black Politicians(5593)
-                </option>
-                <option value="injury">Injury(6822)</option>
-                <option value="fashion-mnist">Fashion-MNIST(5000)</option>
-                <option value="Dry_Bean_Dataset">Dry Bean()</option>
-                <option value="diabetes">Diabetes(15000)</option>
-                <option value="mm_nhis">NHIS(18790)</option>
-                <option value="labsup">Labsup(31857)</option>
-              </select>
+            <div class="col-sm-auto hyperparameter">
+              <div class="fs-5 fw-bold input-text">
+                PCA
+              </div>
+              <div>
+                <input class="form-control" type="text" id="pcaIter" value="1" />
+              </div>
+            </div>
+            <div class="col-sm-auto hyperparameter">
+              <div class="fs-5 fw-bold input-text">
+                Random
+              </div>
+              <div>
+                <input class="form-control" type="text" id="randIter" value="9" />
+              </div>
             </div>
           </div>
-          <div class="hyperparameter">
-            <div class="input-text">
-              <h4><strong>PCA:</strong></h4>
+          <div class="row hyperparmeters" style="margin-top:10px">
+            <div class="col-sm-auto hyperparameter">
+              <div class="fs-5 fw-bold input-text">
+                Perplexity
+              </div>
+              <div>
+                <input
+                  class="form-control"
+                  type="text"
+                  id="perplexity"
+                  value="30"
+                />
+              </div>
             </div>
-            <div>
-              <input class="form-control" type="text" id="pcaIter" value="1" />
-            </div>
-          </div>
-          <div class="hyperparameter">
-            <div class="input-text">
-              <h4><strong>Random:</strong></h4>
-            </div>
-            <div>
-              <input class="form-control" type="text" id="randIter" value="9" />
-            </div>
-          </div>
-        </div>
-        <div class="row2">
-          <div class="hyperparameter">
-            <div class="input-text">
-              <h4><strong>Perplexity:</strong></h4>
-            </div>
-            <div>
-              <input
-                class="form-control"
-                type="text"
-                id="perplexity"
-                value="10"
-              />
-            </div>
-            <div class="hyperparameter">
-              <div class="input-text">
-                <h4><strong>Iteration:</strong></h4>
+            <div class="col-sm-auto hyperparameter">
+              <div class="fs-5 fw-bold input-text">
+                Iteration
               </div>
               <div>
                 <input
                   class="form-control"
                   type="text"
                   id="iteration"
-                  value="100"
+                  value="300"
                 />
               </div>
             </div>
-            <div class="hyperparameter">
-              <div class="input-text">
-                <h4><strong>Learning Rate:</strong></h4>
+            <div class="col-sm-auto hyperparameter">
+              <div class="fs-5 fw-bold input-text">
+                Learning Rate
               </div>
               <div>
                 <input
                   class="form-control"
                   type="text"
                   id="learningRate"
-                  value="10"
+                  value="auto"
                 />
               </div>
             </div>
-            <div class="hyperparameter">
-              <div class="input-text">
-                <h4><strong>Min Support:</strong></h4>
-              </div>
-              <div>
-                <input
-                  class="form-control"
-                  type="text"
-                  id="minSupport"
-                  value="8"
-                />
-              </div>
+            <div class="col-sm-auto buttons text-center">
+              <button class="btn btn-outline-primary" id="runBtn">
+                Run
+              </button>
+              <button class="btn btn-outline-danger" id="resetBtn">
+                Reset
+              </button>
             </div>
           </div>
-          <div class="runBtn col-auto text-center">
-            <button class="btn btn-primary" id="runBtn" style="font-size: 20px">
-              Run
-            </button>
+          <div class="row" style="margin-top:20px">
+            <div class="text-center">
+              <svg class="scatterplot" id="scatterplot0"></svg>
+              <svg class="scatterplot" id="scatterplot1"></svg>
+              <svg class="scatterplot" id="scatterplot2"></svg>
+              <svg class="scatterplot" id="scatterplot3"></svg>
+              <svg class="scatterplot" id="scatterplot4"></svg>
+            </div>
           </div>
-          <div class="resetBtn col-auto text-center">
-            <button
-              class="btn btn-danger"
-              id="resetBtn"
-              style="font-size: 20px"
-            >
-              Brush Reset
-            </button>
+          <div class="row" style="margin-top:10px">
+            <div class="text-center">
+              <svg class="scatterplot" id="scatterplot5"></svg>
+              <svg class="scatterplot" id="scatterplot6"></svg>
+              <svg class="scatterplot" id="scatterplot7"></svg>
+              <svg class="scatterplot" id="scatterplot8"></svg>
+              <svg class="scatterplot" id="scatterplot9"></svg>
+
+            </div>
           </div>
         </div>
+        <div class="col-3">
+          <div class="row">
+            <div class="fs-5 fw-bold">FS View</div>
+            <div class="text-center">
+              <svg id="histogram" width="450px" height="500px"></svg>
+            </div>
+          </div>
+          <div class="row text-center">
+            <div class="fs-5 fw-bold">Heatmap</div>
+            <svg class="heatmap"></svg>
+          </div>
+        </div>
+
       </div>
 
-      <div class="text-center">
-        <svg width="200" height="200" id="scatterplot0"></svg>
-        <svg width="200" height="200" id="scatterplot1"></svg>
-        <svg width="200" height="200" id="scatterplot2"></svg>
-        <svg width="200" height="200" id="scatterplot3"></svg>
-        <svg width="200" height="200" id="scatterplot4"></svg>
-        <svg width="200" height="200" id="scatterplot5"></svg>
-        <svg width="200" height="200" id="scatterplot6"></svg>
-        <svg width="200" height="200" id="scatterplot7"></svg>
-        <svg width="200" height="200" id="scatterplot8"></svg>
-        <svg width="200" height="200" id="scatterplot9"></svg>
-      </div>
     </main>
-
     <script
       type="module"
       src="{{ url_for('static', filename='js/index.js') }}"

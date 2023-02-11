@@ -94,9 +94,10 @@ class TSNE:
             max_iter = self.max_iter,
             learning_rate = self.learning_rate)
 
-        self.embedded_data , loss = Z 
-        if return_loss :
-            self.loss[self.init].append(loss[-1])
+        self.embedded_data , loss = Z
+        
+        # if return_loss:
+        #     self.loss[self.init].append(loss[-1])
         
 
     def save_embedded_data(self):
@@ -119,13 +120,13 @@ class TSNE:
         self.embeddings.append({"hyperparameter": hyperparameter,
                                 "embedding":self.embedded_data})
 
-        if os.path.isfile(f'{path}/{self.init}_1.csv'):
-            i = 2
-            while(os.path.isfile(f'{path}/{self.init}_{i}.csv')):
-                i = i+1
-            self.embedded_data.to_csv(f'{path}/{self.init}_{i}.csv')
-        else:
-            self.embedded_data.to_csv(f'{path}/{self.init}_1.csv')
+        # if os.path.isfile(f'{path}/{self.init}_1.csv'):
+        #     i = 2
+        #     while(os.path.isfile(f'{path}/{self.init}_{i}.csv')):
+        #         i = i+1
+        #     self.embedded_data.to_csv(f'{path}/{self.init}_{i}.csv')
+        # else:
+        #     self.embedded_data.to_csv(f'{path}/{self.init}_1.csv')
 
     def save_result(self):
         result = {'Shape' : {'Instances': self.instances, "Attributes" : self.attributes}}

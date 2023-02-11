@@ -30,26 +30,6 @@ class FSM:
         self.adjacency_list = None
 
         self.results = []
-        
-    # def load_dirs(self):
-    #     path = self.dir_path
-    #     if self.perplexity != -1:
-    #         path += 'perplexity_' + str(self.perplexity) + '_'
-    #     else:
-    #         path += '*'
-    #     if self.iteration!= -1:
-    #         path += 'max_iter_' + str(self.iteration) + '_'
-    #     else:
-    #         path += '*'
-    #     if self.learning_rate!= -1:
-    #         if self.learning_rate == 0:
-    #             path += 'learning_rate_auto_'
-    #         else:
-    #             path += 'learning_rate_' + str(self.learning_rate) + '_'
-    #     else:
-    #         path += '*'
-        
-    #     self.dirs = glob.glob(path)   
 
     def load_graphs(self):
         # graph를 snap.py에서 제공하는 graph 형식으로 load
@@ -61,7 +41,6 @@ class FSM:
         graph_files = glob.glob(graph_path)
         graph_files.sort()
         self.count = len(graph_files)
-        print(self.count)
 
         for graph_file in graph_files:
             FIn = snap.TFIn(graph_file)
@@ -135,8 +114,8 @@ class FSM:
                 subgraph.update(self.adjacency_list[next_node])
 
             subgraph = (list(subgraph))
-            # if len(subgraph) <= 10:
-            #     continue
+            if len(subgraph) == 1:
+                continue
             self.FS_set.append(subgraph)
         
         # subgraph 결과 저장
@@ -159,7 +138,7 @@ class FSM:
         return True, None
 
     def save_FS(self):
-        json_path = self.path + f'FSM.json'
+        #json_path = self.path + f'FSM.json'
         json_data = {"FSM" : self.results}
         # with open(json_path, "w") as json_file:
         #     json.dump(json_data, json_file, indent="\t")

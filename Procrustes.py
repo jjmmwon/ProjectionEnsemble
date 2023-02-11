@@ -135,9 +135,6 @@ class Procrustes:
             # ]     
         result = {"DR": self.embeddings}
         
-        # with open(self.path+"/result.json", "w") as json_file:
-        #     json.dump(result, json_file, indent="\t")
-        
         return result
 
 

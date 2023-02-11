@@ -1,7 +1,5 @@
 import { Scatterplot } from "./Scatterplot.mjs";
-//import { url } from "./url.mjs";
-//import { ResultTable } from "./Table.mjs";
-//import { Procrustes } from "./Procrustes.mjs";
+import { Histogram } from "./Histogram.mjs";
 
 let title,
     perplexity,
@@ -11,165 +9,94 @@ let title,
     randomIteration,
     minSupport,
     data = [],
-    frqSubG;
+    frqSubG,
+    pMax, pMin,
+    init = true;
 
 async function Update() {
   /*
     Take title and hyperparameters
     -> update url and data
   */
-  
   title = d3.select("#dataTitle").property("value");
   perplexity = d3.select("#perplexity").property("value");
   iteration = d3.select("#iteration").property("value");
   learningRate = d3.select("#learningRate").property("value");
   pcaIteration = d3.select("#pcaIter").property("value");
   randomIteration = d3.select("#randIter").property("value");
-  minSupport = d3.select("#minSupport").property("value");
-
-  let url = 
+  //minSupport = d3.select("#minSupport").property("value");
+  
 
   await d3.json(`http://127.0.0.1:50001/ensembleDR?`
                 + `title=${title}`
-                + `&perp=${perp}`
-                + `&iter=${iter}`
-                + `&lr=${lr}`
-                + `&pca=${pca}`
-                + `&random=${random}`
-                + `&min_sup=${minSup}`)
-          .then((d)=>{
-                  frqSubG = d.FSM;
-                for(let i=0; i < d["DR"].length; i++){
-                  data[i] = d["DR"][i];
-                  // data[i][""] = d["DR"][i]["Embeddings"]["idx"];
-                  // data[i]["0"] = d["DR"][i]["Embeddings"]["0"];
-                  // data[i]["1"] = d["DR"][i]["Embeddings"]["1"];
-                  // data[i]["class"] = d["DR"][i]["Embeddings"]["class"];
-                }})
-    
-  drawScatterplot();
-  frequentSubgraph(frqSubG, minSup);  
- 
-  // let x = new XMLHttpRequest("sdfsdfdsf");
-  // x.onload = function(data) {}
-  // x.send();
-
-//   $.ajax({
-//     url: "sdfsdfds",
-//     success: function() {
-//       $.ajax({
-//         url: "dasdfsdf",
-//         success: function() {
-// //          $.ajax()
-//         }
-//       })
-//     }
-//   })
-  // abc;
-
+                + `&perp=${perplexity}`
+                + `&iter=${iteration}`
+                + `&lr=${learningRate}`
+                + `&pca=${pcaIteration}`
+                + `&random=${randomIteration}`
+                + `&min_sup=${8}`)
+          .then((result)=>{
+                  frqSubG = result.FSM[0].FS.sort((a,b)=> b.length - a.length);
+                  console.log(frqSubG);
+                  result.DR.forEach((d, i)=>{
+                    data[i] = d.embedding;
+                })})
+  pMax = data[0][0]["0"];
+  pMin = data[0][0]["0"];
   
-  // Promise
-  // d3.json("url")
-  //   .then(() => d3.json("asdf"))
-  //   .then(() => (dfdf ? d3.json("sdf") : d3.json(w))
-  //   .then(() => {
-  //   }) 
-
-  // async await
-
-  // data = await d3.json("url");
-  // data2 = await d3.json("asdf");
-  
-  // data3 = await d3.json("sdf");
-    
-
-
-  console.log("data", data);
-  console.log("frqSubG", frqSubG);
+  data.forEach((datum)=>{
+    datum.forEach((d)=>{
+      pMax = pMax < d["0"] ? d["0"] : pMax;
+      pMin = pMin > d["0"] ? d["0"] : pMin;
+      pMax = pMax < d["1"] ? d["1"] : pMax;
+      pMin = pMin > d["1"] ? d["1"] : pMin;
+    })
+  })
+  drawScatterplot();   
+  drawHistorgram();
 }
 
-let scatterplot, brushedIndex;
+let scatterplot =[],
+    histogram;
 
 function drawScatterplot() {
-  scatterplot = [];
-  let size = 480;
-  
-  // for(let i=0;i<data.length;i++){
-  //   scatterplot[i] = new Scatterplot(
-  //     `#scatterplot${i}`,
-  //     data[i],
-  //     size,
-  //     size
-  //   );
-  //   scatterplot[i].initialize();
-  //   scatterplot[i].on("brush", (brushedItems) => {
-  //     brushedIndex = new Set(brushedItems.map((d) => d[""]));
-  //     brushOccured(brushedIndex);
-  //   });  
-  //   initScatterplot(scatterplot);
-  // }
+  if(init){
+    scatterplot = data.map((_, i) => new Scatterplot(`#scatterplot${i}`, 260, 260));
 
-  scatterplot = data.map((d, i) => new Scatterplot(
-      `#scatterplot${i}`,
-      d,
-      size,
-      size
-  ))
- 
+    scatterplot.forEach(sc => sc.initialize());
 
-  scatterplot.forEach(sc => sc.initialize());
-
-  scatterplot.forEach(sc => {
-    sc.on("brush", (brushedItems) => {
-      brushedIndex = new Set(brushedItems.map((d) => d[""]));
-      brushOccured(brushedIndex);
-    });  
-  });
-
-  initScatterplot(scatterplot);
-}
-
-function initScatterplot(scatterplot) {
-  scatterplot.forEach((d) => d.selectionUpdate());
-}
-
-function brushOccured(brushedIndex) {
-  scatterplot.forEach((d) => d.brushUpdate(brushedIndex));
-}
-
-function dataLoad(url) {
-  return d3.json(url).then((d)=>{
-    console.log(d);
-    console.log(d["FSM"]);
-    frqSubG = d.FSM;
-    console.log(frqSubG);
-    for(let i=0; i < d["DR"].length; i++){
-      data[i] = d["DR"][i];
-      // data[i][""] = d["DR"][i]["Embeddings"]["idx"];
-      // data[i]["0"] = d["DR"][i]["Embeddings"]["0"];
-      // data[i]["1"] = d["DR"][i]["Embeddings"]["1"];
-      // data[i]["class"] = d["DR"][i]["Embeddings"]["class"];
-    }
-  })
-}
-
-function frequentSubgraph(frqSubG, minSup) {
-  frqSubG.forEach((d)=>{
-    if(d["Min_support"]==minSup){
-      if(d["FS"].length > 10){
-        d["FS"].sort((a,b) =>{
-          return b.length - a.length;
+    scatterplot.forEach(sc => {
+      sc.on("brush", (brushedIndex) => {
+        scatterplot.forEach(sc2 =>{
+          sc2.updateBrushSet(brushedIndex);
         });
-      }
-      scatterplot.forEach((s)=>{
-        s.frequentSubgraphUpdate(d["FS"]);
-      })
-    }
+      });
+    });
+  }
+  scatterplot.forEach((sc,i) =>{
+    sc.update(data[i], pMax, pMin, frqSubG);
   })
+}
+
+function drawHistorgram(){
+  if(init){
+    init=false;
+    histogram = new Histogram('#histogram', 450, 500);
+    histogram.initialize()
+  }
+  histogram.update(frqSubG);
 }
 
 function Reset() {
-  scatterplot.forEach((d) => d.brushReset());
+  scatterplot.forEach((sc) => sc.resetBrush());
 }
 
-export { Update, Reset };
+function ChangeMode(mode){
+  if(init) return;
+
+  scatterplot.forEach((sc)=>{
+    sc.changeMode(mode);
+  })
+}
+
+export { Update, Reset, ChangeMode };

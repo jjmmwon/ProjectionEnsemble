@@ -4,6 +4,8 @@
 from flask import Flask, render_template, request, jsonify
 from EnsembleDR import EnsembleDR
 import uuid
+import json
+import os
 
 app= Flask(__name__)
 
@@ -17,23 +19,21 @@ def ensembleDR():
     pca_iter=int(request.args.get('pca'))
     random_iter=int(request.args.get('random'))
     perplexity=int(request.args.get('perp'))
-    learning_rate=int(request.args.get('lr'))
+    learning_rate= "auto" if request.args.get('lr')=="auto" else int(request.args.get('lr'))
     iteration=int(request.args.get('iter'))
     min_supports=int(request.args.get('min_sup'))
 
-    class_list = {'breast_cancer':'diagnosis','milknew':'Grade','mobile_price':'price_range',
-            'fashion-mnist':'label','diabetes':'Diabetes_012'}
+    class_list = {'breast_cancer':'diagnosis',
+                  'milknew':'Grade',
+                  'mobile_price':'price_range',
+                  'fashion-mnist':'label',
+                  'diabetes':'Diabetes_012'}
+    
     uid = uuid.uuid4().hex[:8]
-
-
-
-    class_col=None
-    if title in class_list:
-        class_col = class_list[title]
 
     ensemble_DR = EnsembleDR(uid=uid,
                              title = title,
-                             class_col=class_col,
+                             class_col= class_list[title] if title in class_list else None,
                              perplexity=perplexity,
                              iteration=iteration,
                              learning_rate=learning_rate,
@@ -42,6 +42,9 @@ def ensembleDR():
                              random_iter=random_iter)
 
     result = ensemble_DR.run()
+    path = f'./static/result/{title}_{uid}/result.json'
+    with open(path, "w") as json_file:
+        json.dump(result, json_file, indent="\t")
     return jsonify(result)
 
 
