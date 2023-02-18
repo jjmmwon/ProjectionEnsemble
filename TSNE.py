@@ -13,7 +13,6 @@ import sys
 sys.path.append('/home/myeongwon/mw_dir/FS_TSNE/src/fitsne')
 
 from fast_tsne import fast_tsne
-#from snc import SNC
 
 class TSNE:
     def __init__(self, 
@@ -96,10 +95,6 @@ class TSNE:
 
         self.embedded_data , loss = Z
         
-        # if return_loss:
-        #     self.loss[self.init].append(loss[-1])
-        
-
     def save_embedded_data(self):
         """
         save embedded data
@@ -120,43 +115,6 @@ class TSNE:
         self.embeddings.append({"hyperparameter": hyperparameter,
                                 "embedding":self.embedded_data})
 
-        # if os.path.isfile(f'{path}/{self.init}_1.csv'):
-        #     i = 2
-        #     while(os.path.isfile(f'{path}/{self.init}_{i}.csv')):
-        #         i = i+1
-        #     self.embedded_data.to_csv(f'{path}/{self.init}_{i}.csv')
-        # else:
-        #     self.embedded_data.to_csv(f'{path}/{self.init}_1.csv')
-
-    def save_result(self):
-        result = {'Shape' : {'Instances': self.instances, "Attributes" : self.attributes}}
-
-        
-        result['Hyperparameter'] = {
-                "perplexity" : self.perplexity,
-                "iteration": self.max_iter,
-                "learning rate": self.learning_rate
-            }
-
-        result['pca'] = []
-        result['random'] = []
-
-        for l in self.loss['pca']:
-            result['pca'].append({
-                "Loss" : l
-            })
-
-        for l in self.loss['random']:
-            result['random'].append({
-                "Loss" : l
-            })
-
-        path = f'./static/result/{self.data_title}_{self.uid}'
-        file_path = f'{path}/loss.json'
-
-        with open(file_path, "w") as json_file:
-            json.dump(result, json_file, indent="\t")
-
     def run(self):
         self.preprocess()
         for _ in tqdm(range(self.pca_iter), desc="PCA Iteration"):
@@ -167,7 +125,6 @@ class TSNE:
             self.fit(init = 'random', return_loss = True)
             self.save_embedded_data()
         
-        #self.save_result()
         return self.embeddings
 
 
@@ -191,13 +148,13 @@ def main():
     args = argparsing()
 
     tsne = TSNE(file_path=args.file_path,
-        data_title=args.data_title,
-        random_iter = args.random_iter, 
-        pca_iter= args.pca_iter, 
-        perplexity = args.perplexity, 
-        max_iter = args.max_iter, 
-        learning_rate = args.learning_rate,
-        class_col=args.class_col)
+                data_title=args.data_title,
+                random_iter = args.random_iter, 
+                pca_iter= args.pca_iter, 
+                perplexity = args.perplexity, 
+                max_iter = args.max_iter, 
+                learning_rate = args.learning_rate,
+                class_col=args.class_col)
 
     tsne.run()
 

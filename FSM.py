@@ -1,54 +1,27 @@
-import os
-import glob
-import json
 import argparse
-
 import snap
 import numpy as np
-from tqdm import tqdm
 
 class FSM:
     def __init__(self,
-                 graphs,
-                 graph_title,
-                 min_supports=8,
-                 k=5):
-                 
-        self.graphs = graphs
-        self.count = len(graphs)
-        self.graph_title = graph_title
-        self.path = f'./static/result/{graph_title}/'
-        self.min_supports = min_supports
-        self.k = k
+                 graph_dict,
+                 ):
+        
+        self.graph_dict = graph_dict
+        self.count = 10
+        self.k_list = list(self.graph_dict.keys())
+        self.min_supports = [6,7,8,9,10]
+        
+        self.result = {"FSM":[]}
 
-        self.data_len = len(graphs)
-        self.node_len = self.graphs[0].GetNodes()
+        self.node_len = self.graph_dict[5][0].GetNodes()
 
         self.mother_graph = None
-        
+
         self.FS_set = []
         self.adjacency_list = None
 
         self.results = []
-
-    def load_graphs(self):
-        # graph를 snap.py에서 제공하는 graph 형식으로 load
-        if self.learning_rate == -1:
-            self.learning_rate = "auto"
-        self.path = self.path + f'perplexity_{self.perplexity}_max_iter_{self.iteration}_learning_rate_{self.learning_rate}_/'
-        graph_path = self.path + '*.graph'
-        
-        graph_files = glob.glob(graph_path)
-        graph_files.sort()
-        self.count = len(graph_files)
-
-        for graph_file in graph_files:
-            FIn = snap.TFIn(graph_file)
-            graph = snap.TUNGraph.Load(FIn)
-            self.graph_set.append(graph)
-
-        # for i, graph in enumerate(self.graph_set):
-        #     print(i, graph.IsEdge(8, 15)) # 그래프 노드 개수
 
     def generate_mother_graph(self):
         """
@@ -66,29 +39,32 @@ class FSM:
         """
         mother_graph의 모든 edge를 반복하며 min_supports 이상 나타나는 edge만 남겨둔다.
         """
-        del_edges = []
+        del_edges = {ms:[] for ms in self.min_supports}
         for edge in self.mother_graph.Edges():
             count = self.count
             for graph in self.graphs:
                 if(not graph.IsEdge(*(edge.GetId()))):
+                    del_edges[count].append(edge.GetId())
                     count -= 1
-                if(count<self.min_sup):
-                    del_edges.append(edge.GetId())
-                    break
-
-        for del_edge in del_edges:
-            self.mother_graph.DelEdge(*del_edge)
+                    if(count<6):
+                        break
+        
+        self.frequent_subgraphs = { ms : snap.ConvertGraph(type(self.mother_graph), self.mother_graph)
+                                    for ms in self.min_supports}
+        for ms in self.min_supports:
+            for del_edge in del_edges[ms]:
+                self.frequent_subgraphs[ms].DelEdge(*del_edge)
     
-    def generate_adjacency_list(self):
+    def generate_adjacency_list(self, fs):
         """
         mother_graph의 adjacency list 생성
         """
         self.adjacency_list = [[] for _ in range(self.node_len)]
-        for edge in self.mother_graph.Edges():
+        for edge in fs.Edges():
             self.adjacency_list[edge.GetSrcNId()].append(edge.GetDstNId())
             self.adjacency_list[edge.GetDstNId()].append(edge.GetSrcNId())
 
-    def get_subgraph(self):
+    def get_subgraph(self, k, ms):
         """
         frequent edge 정보를 통해 frequent subgraph 나눈다.
         node 반복
@@ -98,6 +74,7 @@ class FSM:
                 subgraph 안의 node 돌면서 이웃 계속 추가
                 모두 visit true일 시 sugraph의 node set을 list로 변경시켜 FS_set에 추가
         """
+        FS_list = []
         visit = [False for _ in range(self.node_len)] 
         
         for node in range(self.node_len):
@@ -116,16 +93,11 @@ class FSM:
             subgraph = (list(subgraph))
             if len(subgraph) == 1:
                 continue
-            self.FS_set.append(subgraph)
+            FS_list.append(subgraph)
         
         # subgraph 결과 저장
-        result = {}        
-        result["Min_support"] = self.min_sup
-        result["FS"] = self.FS_set
-
-        self.results.append(result)
-
-
+        self.result['FSM'].append({'k': k, 'min_support': ms, 'FS':FS_list})
+        
 
     def is_all_visited(self, visit, subgraph):
         """
@@ -137,26 +109,15 @@ class FSM:
                 return False, node
         return True, None
 
-    def save_FS(self):
-        #json_path = self.path + f'FSM.json'
-        json_data = {"FSM" : self.results}
-        # with open(json_path, "w") as json_file:
-        #     json.dump(json_data, json_file, indent="\t")
-        
-        return json_data
-
-
     def run(self):
-        # self.load_dirs()
-        #self.load_graphs()
-        for ms in self.min_supports:
-            self.min_sup = ms
-            self.FS_set = []
-            self.generate_mother_graph()        
+        for k in self.k_list:
+            self.graphs = self.graph_dict[k]
+            self.generate_mother_graph()    
             self.detect_frequent_edge()
-            self.generate_adjacency_list()
-            self.get_subgraph()
-        return self.save_FS()
+            for ms in self.min_supports:
+                self.generate_adjacency_list(self.frequent_subgraphs[ms])
+                self.get_subgraph(k, ms)
+        return self.result
 
 def argparsing():
     parser = argparse.ArgumentParser(description="Frequent Subgraph Mining")

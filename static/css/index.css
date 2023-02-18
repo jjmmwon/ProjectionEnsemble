@@ -1,5 +1,4 @@
 body {
-  background: #eee;
   --bs-body-font-size: 1.5rem;
 }
 
@@ -8,9 +7,32 @@ body {
   background: white;
 }
 
-.data, .hyperparameter{
+.scatterplot-section{
+  width: 100%;
+  margin: 0px 10px 0px 15px;
+  padding:3px 20px;
+  border-radius: 0.5em;
+}
+
+.histogram-section{
+  margin: 0px 15px 10px 0px;
+  border-radius: 0.5em;
+}
+
+.heatmap-section{
+  margin: 10px 15px 10px 0px;
+  border-radius: 0.5em;
+}
+
+.input-text{
+  font-size:20px;
+  font-weight: bold;
+}
+
+.data, .hyperparameter, .umap{
   display: flex;
   align-items: center;
+  margin:2px 0px 2px 5px;
 }
 
 #dataTitle{

@@ -21,7 +21,6 @@ def ensembleDR():
     perplexity=int(request.args.get('perp'))
     learning_rate= "auto" if request.args.get('lr')=="auto" else int(request.args.get('lr'))
     iteration=int(request.args.get('iter'))
-    min_supports=int(request.args.get('min_sup'))
 
     class_list = {'breast_cancer':'diagnosis',
                   'milknew':'Grade',
@@ -37,7 +36,6 @@ def ensembleDR():
                              perplexity=perplexity,
                              iteration=iteration,
                              learning_rate=learning_rate,
-                             min_supports=[min_supports],
                              pca_iter=pca_iter,
                              random_iter=random_iter)
 

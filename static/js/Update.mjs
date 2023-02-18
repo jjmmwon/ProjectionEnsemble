@@ -1,5 +1,6 @@
 import { Scatterplot } from "./Scatterplot.mjs";
 import { Histogram } from "./Histogram.mjs";
+import { Heatmap } from "./Heatmap.mjs";
 
 let title,
     perplexity,
@@ -7,9 +8,9 @@ let title,
     learningRate,
     pcaIteration,
     randomIteration,
-    minSupport,
     data = [],
     frqSubG,
+    fsm,
     pMax, pMin,
     init = true;
 
@@ -24,7 +25,6 @@ async function Update() {
   learningRate = d3.select("#learningRate").property("value");
   pcaIteration = d3.select("#pcaIter").property("value");
   randomIteration = d3.select("#randIter").property("value");
-  //minSupport = d3.select("#minSupport").property("value");
   
 
   await d3.json(`http://127.0.0.1:50001/ensembleDR?`
@@ -34,13 +34,14 @@ async function Update() {
                 + `&lr=${learningRate}`
                 + `&pca=${pcaIteration}`
                 + `&random=${randomIteration}`
-                + `&min_sup=${8}`)
-          .then((result)=>{
-                  frqSubG = result.FSM[0].FS.sort((a,b)=> b.length - a.length);
-                  console.log(frqSubG);
-                  result.DR.forEach((d, i)=>{
+                )
+          .then((response)=>{
+                  fsm = response.FSM;
+                  frqSubG = response.FSM[0].FS.sort((a,b)=> b.length - a.length);
+                  response.DR.forEach((d, i)=>{
                     data[i] = d.embedding;
                 })})
+                
   pMax = data[0][0]["0"];
   pMin = data[0][0]["0"];
   
@@ -54,47 +55,74 @@ async function Update() {
   })
   drawScatterplot();   
   drawHistorgram();
+  drawHeatmap();
 }
 
-let scatterplot =[],
-    histogram;
+let scatterplots =[],
+    histogram,
+    heatmap;
 
 function drawScatterplot() {
   if(init){
-    scatterplot = data.map((_, i) => new Scatterplot(`#scatterplot${i}`, 260, 260));
+    scatterplots = data.map((_, i) => new Scatterplot(`#scatterplot${i}`, 260, 260));
 
-    scatterplot.forEach(sc => sc.initialize());
+    scatterplots.forEach(sc => sc.initialize());
 
-    scatterplot.forEach(sc => {
+    scatterplots.forEach(sc => {
       sc.on("brush", (brushedIndex) => {
-        scatterplot.forEach(sc2 =>{
+        scatterplots.forEach(sc2 =>{
           sc2.updateBrushSet(brushedIndex);
         });
       });
     });
   }
-  scatterplot.forEach((sc,i) =>{
-    sc.update(data[i], pMax, pMin, frqSubG);
+  scatterplots.forEach((sc,i) =>{
+    sc.update(data[i], pMax, pMin);
+    sc.updateFrqSubG(frqSubG);
   })
 }
 
 function drawHistorgram(){
   if(init){
-    init=false;
-    histogram = new Histogram('#histogram', 450, 500);
-    histogram.initialize()
+    histogram = new Histogram('#histogram', 400, 450);
+    histogram.initialize();
   }
   histogram.update(frqSubG);
 }
 
+function drawHeatmap(){
+  if(init){
+    init=false;
+    heatmap = new Heatmap('#heatmap', 280, 280);
+    heatmap.initialize();
+    heatmap.on("click", (k,ms)=>{
+      updateFS(k, ms);
+    })
+  }
+  heatmap.update(fsm);  
+}
+
+async function updateFS(k, ms){
+  fsm.forEach((d)=>{
+    if(d['k']== k && d['min_support']==ms){
+      frqSubG = d['FS'].sort((a,b)=> b.length - a.length);
+    }
+  })
+  await scatterplots.forEach((sc)=>{
+    sc.updateFrqSubG(frqSubG);
+  })
+  await histogram.update(frqSubG);
+  console.log('bbb')
+}
+
 function Reset() {
-  scatterplot.forEach((sc) => sc.resetBrush());
+  scatterplots.forEach((sc) => sc.resetBrush());
 }
 
 function ChangeMode(mode){
   if(init) return;
 
-  scatterplot.forEach((sc)=>{
+  scatterplots.forEach((sc)=>{
     sc.changeMode(mode);
   })
 }

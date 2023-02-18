@@ -29,80 +29,64 @@ class Scatterplot {
     this.xScale = d3.scaleLinear();
     this.yScale = d3.scaleLinear();
 
-    this.svg
-      .attr("width", this.width)
-      .attr("height", this.height);
+    this.svg.attr("width", this.width).attr("height", this.height);
 
     this.container.attr(
       "transform",
       `translate(${this.margin.left}, ${this.margin.top})`
     );
 
-    this.title
-      .text(svgTitle)
-      .attr(
-        "transform",
-        `translate(${
-          this.width / 2
-        },${35})`
-      )
-      .attr("text-anchor", "middle")
-      .attr("font-size", "1rem")
-
-    // this.xScale.domain([-0.1, 0.1]).range([0, this.width]);
-    // this.yScale.domain([-0.1, 0.1]).range([this.height, 0]);
+    // this.title
+    //   .text(svgTitle)
+    //   .attr(
+    //     "transform",
+    //     `translate(${
+    //       this.width / 2
+    //     },${35})`
+    //   )
+    //   .attr("text-anchor", "middle")
+    //   .attr("font-size", "1rem")
 
     this.brush = d3
       .brush()
       .extent([
         [0, 0],
-        [this.width - this.margin.left - this.margin.right,
-         this.height - this.margin.top - this.margin.bottom],
+        [
+          this.width - this.margin.left - this.margin.right,
+          this.height - this.margin.top - this.margin.bottom,
+        ],
       ])
       .on("end", (event) => {
         this.brushCircles(event);
       });
 
-    // this.xAxis
-    //   .attr(
-    //     "transform",
-    //     `translate(${this.margin.left}, ${this.margin.top + this.height})`
-    //   )
-    //   .transition()
-    //   .call(d3.axisBottom(this.xScale));
-
-    // this.yAxis
-    //   .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`)
-    //   .transition()
-    //   .call(d3.axisLeft(this.yScale));
-
     this.container.call(this.brush);
   }
 
   //update event
-  update(data, pMax, pMin, frqSubG) {
+  update(data, pMax, pMin) {
     this.data = data;
-    this.frqSubG = frqSubG;
     this.isClassed = "class" in this.data[0] ? true : false;
 
     this.xScale
-        .domain([pMin*1.1, pMax*1.1])
-        .range([0, this.width - this.margin.left - this.margin.top ]);
+      .domain([pMin * 1.1, pMax * 1.1])
+      .range([0, this.width - this.margin.left - this.margin.top]);
 
     this.yScale
-        .domain([pMin*1.1, pMax*1.1])
-        .range([this.height - this.margin.top - this.margin.bottom, 0]);
+      .domain([pMin * 1.1, pMax * 1.1])
+      .range([this.height - this.margin.top - this.margin.bottom, 0]);
 
-    if(this.isClassed){
+    if (this.isClassed) {
       this.classColorScale = d3
-          .scaleOrdinal()
-          .domain([...new Set(this.data.map((d)=>d["class"]))])
-          .range(d3.schemeCategory10);
+        .scaleOrdinal()
+        .domain([...new Set(this.data.map((d) => d["class"]))])
+        .range(d3.schemeCategory10);
     }
+
     this.frqSubgColorScale = d3
-          .scaleOrdinal()
-          .domain([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-          .range(d3.schemeCategory10);
+      .scaleOrdinal()
+      .domain([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+      .range(d3.schemeCategory10);
 
     this.circles = this.container
       .selectAll("circle")
@@ -131,8 +115,6 @@ class Scatterplot {
       .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`)
       .transition()
       .call(d3.axisLeft(this.yScale));
-
-    // this.container.call(this.brush);
   }
 
   updateBrushSet(brushedIndex) {
@@ -159,12 +141,12 @@ class Scatterplot {
 
   brushCircles(event) {
     let selection = event.selection,
-        brushedIndex = new Set(this.data
-                                .filter((d)=>this.isBrushed(d,selection))
-                                .map((d)=>d["idx"])
-                              );
-    if (this.handlers.brush)
-      this.handlers.brush(brushedIndex);
+      brushedIndex = new Set(
+        this.data
+          .filter((d) => this.isBrushed(d, selection))
+          .map((d) => d["idx"])
+      );
+    if (this.handlers.brush) this.handlers.brush(brushedIndex);
   }
 
   on(eventType, handler) {
@@ -172,36 +154,27 @@ class Scatterplot {
   }
 
   updateFrqSubG(frqSubG) {
-    let color,
-        colorScale = d3
-          .scaleOrdinal()
-          .domain([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-          .range(d3.schemeCategory10);
-
+    let color;
+    this.circles.transition().attr("fill", "steelblue");
     frqSubG.forEach((fs, i) => {
-      if (i < 10) {
-        color = colorScale(i);
+      if (i < 9) {
+        color = this.frqSubgColorScale(i + 1);
         this.circles
           .filter((d) => fs.includes(Number(d["idx"])))
           .transition()
-          .attr("fill", color)
-          .attr("r", 3)
-          .attr("opacity", 0.9);
+          .attr("fill", color);
       }
     });
   }
 
-  changeMode(mode){
-    if(mode=="class"){
-      this.circles
-        .attr("fill", (d) => this.classColorScale(d["class"]));
-    }
-    else{
-      this.circles
-        .attr("fill", "Steelblue");
+  changeMode(mode) {
+    if (mode == "class") {
+      this.circles.attr("fill", (d) => this.classColorScale(d["class"]));
+    } else {
+      this.circles.attr("fill", "Steelblue");
       this.frqSubG.forEach((fs, i) => {
         if (i < 9) {
-          let color = this.frqSubgColorScale(i+1);
+          let color = this.frqSubgColorScale(i + 1);
           this.circles
             .filter((d) => fs.includes(Number(d["idx"])))
             .transition()

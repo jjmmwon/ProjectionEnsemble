@@ -1,7 +1,4 @@
-import glob
-import os
 import numpy as np
-import pandas as pd
 import snap
 import argparse
 
@@ -16,16 +13,12 @@ class GraphGenerator:
         self.uid = uid
         self.embeddings = embeddings
         self.path = f'./static/result/{data_title}_{self.uid}'
-        self.k = k
+        self.k = [5,7,10,15,20]
         
         self.data = None
         self.graph = None
-        self.graph_list = []
+        self.graph_dict = {k:[] for k in self.k}
         self.dist_matrix = None
-
-    def load_files(self):
-        path = self.path + '/*.csv'
-        self.csv_files = glob.glob(path)
 
     def generate_distance_matrix(self): 
         """
@@ -39,47 +32,25 @@ class GraphGenerator:
         """
         make graph with k neighbors per each point
         """
-        self.graph = snap.TUNGraph.New()
-        for i in range(self.dist_matrix.shape[0]):
-            self.graph.AddNode(i)
-        idx = 0
-        for row in self.dist_matrix:
+        graph_list = [snap.TUNGraph.New() for _ in range(len(self.k))]
+        for g in graph_list:
+            for i in range(self.dist_matrix.shape[0]):
+                g.AddNode(i)
+        
+        for r, row in enumerate(self.dist_matrix):
             nearest_neighbor = row.argsort()
-            for i in range(1, self.k+1):
-                self.graph.AddEdge(int(idx), int(nearest_neighbor[i]))
-            idx += 1
+            for i, k in enumerate(self.k):
+                for j in range(1, k+1):
+                    graph_list[i].AddEdge(int(r), int(nearest_neighbor[j]))
         
-        self.graph_list.append(self.graph)
-        
+        for i, g in enumerate(graph_list):
+            self.graph_dict[self.k[i]].append(g)
 
-    # def save_graph(self):
-    #     """
-    #     save graph file using snap lib
-    #     """
-    #     save_path = self.current_file[:-4]
-
-    #     FOut = snap.TFOut(f'{save_path}_k_{self.k}.graph')
-    #     self.graph.Save(FOut)
-    #     FOut.Flush()
 
     def run(self):
         """
         make distant matrix -> clustering -> save graph
         """
-        #self.load_files()
-        # for csv_file in tqdm(self.csv_files):
-        #     self.current_file = csv_file
-        #     data = pd.read_csv(self.current_file)
-                        
-        #     if 'class' in data.columns:
-        #         data = data.drop('class', axis=1)
-
-        #     data = data.to_numpy()
-        #     self.data = data[:, 1:]
-        #     print(self.data)
-        #     self.distant_matrix()
-        #     self.kNN()
-        #     self.save_graph()
         for e in self.embeddings:
             data = e["embedding"]
 
@@ -88,9 +59,7 @@ class GraphGenerator:
             self.data = data.to_numpy()
             self.generate_distance_matrix()
             self.kNN()
-            #self.save_graph()
-        
-        return self.graph_list
+        return self.graph_dict
         
 
 def argparsing():

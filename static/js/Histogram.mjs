@@ -23,14 +23,12 @@ class Histogram{
             .attr("width", this.width + this.margin.left + this.margin.right)
             .attr("height", this.height + this.margin.top + this.margin.bottom);
 
-        this.container.attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
+        this.container
+            .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
     }
 
     update(data){
         const categories = [...new Array(data.length)].map((_,i)=>i+1);
-        console.log(categories);
-
-        console.log(data[0].length);
 
         this.xScale
             .domain([0,data[0].length])
@@ -41,6 +39,11 @@ class Histogram{
             .range([0, this.height])
             .padding(0.3);
 
+        this.colorScale = d3
+            .scaleOrdinal()
+            .domain([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+            .range(d3.schemeCategory10);
+
         this.container.selectAll("rect")
             .data(data)
             .join("rect")
@@ -48,7 +51,7 @@ class Histogram{
             .attr("y", (_,i)=>this.yScale(i+1))
             .attr("width", d => this.xScale(d.length))
             .attr("height", this.yScale.bandwidth())
-            .attr("fill", "steelblue");
+            .attr("fill", (_,i)=> i < 9 ? this.colorScale(i+1) : "steelblue");
             
         this.xAxis
             .attr("transform",`translate(${this.margin.left}, ${this.margin.top})`)
