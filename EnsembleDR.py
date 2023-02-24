@@ -1,74 +1,99 @@
 from TSNE import TSNE
+from UMAP import UMAP
 from GraphGen import GraphGenerator
 from FSM import FSM
 from Procrustes import Procrustes
 import json
 
 class EnsembleDR:
-    def __init__(self,
-                 uid,
-                 title,
-                 class_col,
-                 perplexity,
-                 iteration,
-                 learning_rate,
-                 pca_iter=1,
-                 random_iter=9):
-
+    def __init__(self, uid):
         self.uid = uid
-        self.title = title
-        self.path = f'./static/data/{self.title}.csv'
-        self.class_col=class_col
-        self.pca_iter=pca_iter
-        self.random_iter=random_iter
-        self.perplexity = perplexity
-        self.iteration = iteration
-        self.learning_rate = learning_rate
+        self.embeddings = []
 
-        self.result = {}
+    def run_tsne(self, title, init, perp, lr, iteration, class_col):
+        tsne = TSNE(data_title=title,
+                    init=init,
+                    perplexity=perp,
+                    learning_rate=lr,
+                    max_iter=iteration,
+                    class_col=class_col)
+
+        embedding, target = tsne.run()
+
+        if(len(self.embeddings)):
+            embedding = Procrustes().run(self.embeddings[0], embedding)
         
-    def run_DR(self):
-        tsne = TSNE(uid = self.uid,
-                    file_path=self.path,
-                    data_title=self.title,
-                    pca_iter=self.pca_iter,
-                    random_iter=self.random_iter,
-                    perplexity=self.perplexity,
-                    max_iter=self.iteration,
-                    learning_rate=self.learning_rate,
-                    class_col=self.class_col)
+        self.embeddings.append(embedding)
 
-        self.embeddings = tsne.run()
+        return self.embedding_to_json(
+                    method = "t-SNE",
+                    hyperparameter= {
+                        "init":init,
+                        "perp":perp,
+                        "lr": lr,
+                        "iter":iteration
+                    },
+                    embedding = embedding,
+                    target = target
+                )
 
+    def run_umap(self, title, n_neighbors, min_dist, class_col):
+        umap = UMAP(data_title=title,
+                    n_neighbors=n_neighbors,
+                    min_dist=min_dist,
+                    class_col=class_col
+                    )
+        embedding, target = umap.run()
+
+        if(len(self.embeddings)):
+            embedding = Procrustes().run(self.embeddings[0], embedding)
+        
+        self.embeddings.append(embedding)
+
+        return self.embedding_to_json(
+                    method="UMAP",
+                    hyperparameter={
+                        "n_neighbors":n_neighbors,
+                        "min_dist":float(min_dist),
+                    },
+                    embedding = embedding,
+                    target = target
+                )
+        
     def generate_graph(self):
-        gg = GraphGenerator(uid = self.uid,
-                            embeddings=self.embeddings,
-                            data_title=self.title
-                            )
-
+        gg = GraphGenerator(embeddings=self.embeddings)
         self.graph_dict = gg.run()
         
 
     def run_FSM(self):
         fsm = FSM(graph_dict=self.graph_dict)
-
-        self.fsm_results = fsm.run()
-        
-
-    def run_procrustes(self):
-        p = Procrustes(embeddings = self.embeddings, title = self.title)
-        
-        self.DR_results = p.run()
+        return fsm.run()
 
     def run(self):
-        self.run_DR()
         self.generate_graph()
-        self.run_FSM()
-        self.run_procrustes()
 
-        self.DR_results.update(self.fsm_results)
+        return self.run_FSM()
 
-        return self.DR_results
+    def reset(self):
+        self.embeddings = []
+        self.graph_dict = None
+
+
+    def embedding_to_json(self, method, hyperparameter, embedding, target=None):
+        result = {
+            "method":method,
+            "hyperparameter": hyperparameter,
+            "embedding":[{
+                            "idx": i,
+                            "0": float(embedding[i][0]),
+                            "1": float(embedding[i][1]),
+                            "class": "None" if target is None else target[i]
+                        } for i in range(embedding.shape[0])
+                        ]
+        }
+
+        return result
+
 
 
 def main():

@@ -1,90 +1,167 @@
-body {
-  --bs-body-font-size: 1.5rem;
+body{
+  height:100vh;
 }
 
-.container {
-  max-width: 2400px;
-  background: white;
+.container{
+  width:100%;
+  max-width:100%;
+  font-size:16px;
 }
 
-.scatterplot-section{
-  width: 100%;
-  margin: 0px 10px 0px 15px;
-  padding:3px 20px;
-  border-radius: 0.5em;
+#perp, #iter, #lr{
+  width:50px;
+  text-align: center;
+  font-size: 13px;
+}
+
+#nNeighbors, #minDist{
+  width: 40px;
+  text-align: center;
+  font-size: 13px;
+}
+
+#tsneAdd, #umapAdd, #runBtn, #resetBtn{
+  width:50px;
+  height:30px;
+  font-size:15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align:center;
 }
 
 .histogram-section{
-  margin: 0px 15px 10px 0px;
-  border-radius: 0.5em;
-}
-
-.heatmap-section{
-  margin: 10px 15px 10px 0px;
-  border-radius: 0.5em;
-}
-
-.input-text{
-  font-size:20px;
-  font-weight: bold;
-}
-
-.data, .hyperparameter, .umap{
-  display: flex;
-  align-items: center;
-  margin:2px 0px 2px 5px;
-}
-
-#dataTitle{
-  margin: 0px 20px;
-  width:300px;
-  height:35px;
-  vertical-align: middle;
-  font-size: 15px;
-}
-
-#pcaIter, #randIter, #perplexity, #iteration, #learningRate, #minSupport {
-  margin: 0px 20px 0px 10px;
-  width: 60px;
-  height:35px;
-  font-size:15px;
-}
-
-#runBtn{
-  width: 60px;
-  height: 35px;
-  font-size:15px;
-  font-weight: bold;
+  height:350px;
 }
 
 #resetBtn{
-  margin: 0px 10px;
-  width:80px;
-  height: 35px;
+  width:70px;
+}
+
+.sidebar{
+  height:100%;
+}
+
+.main-section{
+  height:100%;
+}
+
+.scatterplot-section{
   font-size:15px;
+}
+
+i{
+  cursor: pointer;
+}
+
+.nopadding{
+  padding:0 !important;
+  margin:0 !important;
+}
+
+
+/* body {
+  font-size:20px;
   font-weight: bold;
+  height:100vh;
 }
 
-.scatterplot{
-  width:260px;
-  height:260px;
-  margin:5px;
+.container {
+  width:100%;
+  padding:0;
+  background-color: white;
+  display: grid;
+  grid-template-columns: 5fr 2fr;
+}
+
+.nopadding{
+  padding:0 !important;
+  margin:0 !important;
+}
+
+.data-section, .tsne-section, .umap-section, .setting-section{
+  padding:15px 15px 10px 15px;
+  margin-right:5px;
+  border-radius: 0.5rem;
+}
+
+.input-section{
+  display:grid;
+  grid-template-columns: 2fr 3.5fr 2fr 2fr;
+  margin:10px;
+}
+
+.tsne, .umap, .setting{
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom:10px;
+}
+
+#dataTitle{
+  width:240px;
+  height:40px;
+}
+
+.hyperparameters{
+  display:grid;
+  margin:3px 0px;
+}
+
+.hpram-text{
+  display:flex;
+  align-items: center;
+  font-weight:lighter;
+  font-size:20px;
+}
+
+#init{
+  width:110px;
+}
+
+#perplexity, #learningRate, #iteration, #nNeighbors, #minDist{
+  width:60px;
+  margin-left:10px;
+}
+
+#tsneAdd, #umapAdd, #runBtn, #resetBtn{
+  width:60px;
+  height:35px;
+  line-height: 17px;
+  margin-right:25px;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+}
+
+#umapAdd{
+  margin-right:15px;
+}
+#runBtn{
+  margin-right: 0px;
+  margin-left:15px;
+}
+
+#resetBtn{
+  padding: 0px;
+  margin-right: 10px;
+}
+
+.settings{
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  grid-row-gap:5px;
+  margin:10px;
 }
 
 
-.brushed {
-  stroke-width: 1;
-  r: 5;
-  stroke: gray;
+.box{
+  width:35px;
+  height:35px;
+  margin:3px;
+  border-width:4px;
+  border-radius: 0.5rem;
+  background-color: white;
 }
 
-
-.classMode {
-  fill: rgb(255, 127, 14);
-  r: 3;
-}
-
-.FSMode {
-  fill: rgb(44, 160, 44);
-  r: 3;
-}
+ */

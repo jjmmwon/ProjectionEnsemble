@@ -10,6 +10,10 @@
       integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
       crossorigin="anonymous"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.1/font/bootstrap-icons.css"
+    />
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://d3js.org/d3-queue.v3.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js"></script>
@@ -20,23 +24,28 @@
     <title>Ensemble DR</title>
   </head>
 
-  <body class="bg-light">
+  <body class="bg-light d-flex flex-column">
     <header>
-      <div class="navbar-brand fs-4 fw-bold" style="padding: 10px 20px;">Ensemble DR</div>
+      <div
+        class="navbar-brand fw-bold"
+        style="padding: 8px 20px; font-size: 20px"
+      >
+        Ensemble DR
+      </div>
     </header>
-
-    <main class="containers">
-      <div class="row bg-light">
-        <div class="col-9">
-          <div class="scatterplot-section bg-white">
-            <div class="row input-section" style="margin-top: 10px">
-              <div class="col-md-auto data">
-                <div class="fs-5 fw-bold input-text">Data</div>
+    <main class="container flex-fill">
+      <div class="row g-2" style="height:100%;">
+        <div class="col-2">
+          <div class="sidebar d-flex flex-column">
+            <div class="select-section bg-white d-flex flex-column rounded-3 mb-2">
+              <div class="d-flex px-3 pt-2 pb-1 align-items-center justify-content-between">
+                <div class="fw-bold">Data</div>
                 <div>
                   <select
                     id="dataTitle"
                     class="form-select"
                     aria-label="Default select example"
+                    style="font-size: 13px"
                   >
                     <option selected value="breast_cancer">
                       Breast Cancer(569)
@@ -58,106 +67,144 @@
                   </select>
                 </div>
               </div>
-              <div class="col-sm-auto hyperparameter">
-                <div class="fs-5 fw-bold input-text">PCA</div>
-                <div>
-                  <input
-                    class="form-control"
-                    type="text"
-                    id="pcaIter"
-                    value="1"
-                  />
+              <div class="tsne-section d-flex flex-column">
+                <div
+                  class="d-flex px-3 py-1 align-items-center justify-content-between"
+                >
+                  <div class="fw-bold">t-SNE</div>
+                  <div>
+                    <button class="btn btn-primary ms-3 p-0" id="tsneAdd">
+                      ADD
+                    </button>
+                  </div>
+                </div>
+                <div class="row px-3 py-1">
+                  <div class="col">
+                    <div class="d-flex justify-content-between">
+                      <div>Init</div>
+                      <div>
+                        <select
+                          id="init"
+                          class="form-select py-1 px-2"
+                          aria-label="Default select example"
+                          style="font-size: 13px; width: 90px"
+                        >
+                          <option selected value="random">Random</option>
+                          <option value="pca">PCA</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="d-flex justify-content-between">
+                      <div>perp</div>
+                      <div>
+                        <input
+                          class="form-control px-1 py-1"
+                          type="text"
+                          id="perp"
+                          value="30"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="row px-3 py-1">
+                  <div class="col">
+                    <div class="d-flex justify-content-between">
+                      <div>iter</div>
+                      <div>
+                        <input
+                          class="form-control px-1 py-1"
+                          type="text"
+                          id="iter"
+                          value="300"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="d-flex justify-content-between">
+                      <div>lr</div>
+                      <div>
+                        <input
+                          class="form-control px-1 py-1"
+                          type="text"
+                          id="lr"
+                          value="auto"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div class="col-sm-auto hyperparameter">
-                <div class="fs-5 fw-bold input-text">Random</div>
-                <div>
-                  <input
-                    class="form-control"
-                    type="text"
-                    id="randIter"
-                    value="9"
-                  />
+              <div class="umap-section d-flex flex-column">
+                <div
+                  class="d-flex px-3 py-1 align-items-center justify-content-between"
+                >
+                  <div class="fw-bold">UMAP</div>
+                  <div>
+                    <button class="btn btn-primary ms-3 py-1" id="umapAdd">
+                      ADD
+                    </button>
+                  </div>
+                </div>
+                <div class="row px-3 pt-1 pb-2">
+                  <div class="col">
+                    <div class="d-flex justify-content-between">
+                      <div class="me-2">n_neighbors</div>
+                      <div>
+                        <input
+                          class="form-control px-1 py-1"
+                          type="text"
+                          id="nNeighbors"
+                          value="15"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="d-flex justify-content-between">
+                      <div>min_dist</div>
+                      <div>
+                        <input
+                          class="form-control px-1 py-1"
+                          type="text"
+                          id="minDist"
+                          value="0.1"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-            <div class="row hyperparmeters" style="margin-top: 10px">
-              <div class="col-sm-auto hyperparameter">
-                <div class="fs-5 fw-bold input-text">Perplexity</div>
-                <div>
-                  <input
-                    class="form-control"
-                    type="text"
-                    id="perplexity"
-                    value="30"
-                  />
-                </div>
-              </div>
-              <div class="col-sm-auto hyperparameter">
-                <div class="fs-5 fw-bold input-text">Iteration</div>
-                <div>
-                  <input
-                    class="form-control"
-                    type="text"
-                    id="iteration"
-                    value="300"
-                  />
-                </div>
-              </div>
-              <div class="col-sm-auto hyperparameter">
-                <div class="fs-5 fw-bold input-text">Learning Rate</div>
-                <div>
-                  <input
-                    class="form-control"
-                    type="text"
-                    id="learningRate"
-                    value="auto"
-                  />
-                </div>
-              </div>
-              <div class="col-sm-auto buttons text-center">
-                <button class="btn btn-outline-primary" id="runBtn">Run</button>
-                <button class="btn btn-outline-danger" id="resetBtn">
-                  Reset
-                </button>
-              </div>
+            <div class="histogram-section bg-white mb-2 px-3 py-2">
+              <div class="fw-bold">FS View</div>
             </div>
-            <div class="row" style="margin-top: 20px">
-              <div>
-                
-              </div>
-              <div class="text-center">
-                <svg class="scatterplot" id="scatterplot0"></svg>
-                <svg class="scatterplot" id="scatterplot1"></svg>
-                <svg class="scatterplot" id="scatterplot2"></svg>
-                <svg class="scatterplot" id="scatterplot3"></svg>
-                <svg class="scatterplot" id="scatterplot4"></svg>
-              </div>
-            </div>
-            <div class="row" style="margin-top: 10px">
-              <div class="text-center">
-                <svg class="scatterplot" id="scatterplot5"></svg>
-                <svg class="scatterplot" id="scatterplot6"></svg>
-                <svg class="scatterplot" id="scatterplot7"></svg>
-                <svg class="scatterplot" id="scatterplot8"></svg>
-                <svg class="scatterplot" id="scatterplot9"></svg>
-              </div>
+            <div class="heatmap-section bg-white px-3 py-2 flex-fill">
+              <div class="fw-bold">FS View</div>
             </div>
           </div>
         </div>
-        <div class="col-3">
-          <div class="row histogram-section bg-white">
-            <div class="fs-5 fw-bold text-center" style="margin: 5px 0px">
-              FS View
+        <div class="col-10">
+          <div
+            class="main-section bg-white d-flex flex-column rounded-3 px-3 py-2"
+          >
+            <div class="d-flex">
+              <div class="fs-5 fw-bold">Ensemble DR</div>
+              <div>
+                <button class="btn btn-outline-primary ms-3 py-1" id="runBtn">
+                  RUN
+                </button>
+              </div>
+              <div>
+                <button class="btn btn-outline-danger ms-3 py-1" id="resetBtn">
+                  RESET
+                </button>
+              </div>
             </div>
-            <div class="text-center">
-              <svg id="histogram" width="400px" height="400px"></svg>
-            </div>
-          </div>
-          <div class="row heatmap-section bg-white">
-            <div class="fs-5 fw-bold text-center" style="margin:5px 0px;">Heatmap</div>
-            <div class="text-center">
-              <svg id="heatmap" width="300px" height="300px"></svg>
+            <div class="scatterplot-section d-flex flex-wrap mt-2 text-center">
             </div>
           </div>
         </div>

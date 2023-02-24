@@ -21,8 +21,6 @@ class FSM:
         self.FS_set = []
         self.adjacency_list = None
 
-        self.results = []
-
     def generate_mother_graph(self):
         """
         graph의 모든 edge를 포함하는 mother graph 생성
@@ -96,7 +94,7 @@ class FSM:
             FS_list.append(subgraph)
         
         # subgraph 결과 저장
-        self.result['FSM'].append({'k': k, 'min_support': ms, 'FS':FS_list})
+        self.result['FSM'].append({'k': k, 'min_support': ms, 'FS':FS_list.sort(key=lambda x: -len(x))})
         
 
     def is_all_visited(self, visit, subgraph):

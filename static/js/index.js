@@ -1,10 +1,11 @@
-import { Update, Reset, ChangeMode } from "./Update.mjs";
+import { addTsne, addUmap, ensembleDR } from "./Update.mjs";
+import { scatterplots } from "./store.mjs";
 
 function main() {
-  d3.select("#runBtn").on("click", Update);
-  d3.select("#resetBtn").on("click", Reset);
-  d3.select("#classMode").on("click",()=> ChangeMode("class"));
-  d3.select("#FSMode").on("click",()=> ChangeMode("FS"));
+  d3.select("#tsneAdd").on("click", addTsne);
+  d3.select("#umapAdd").on("click", addUmap);
+  d3.select("#runBtn").on("click", ensembleDR);
+  d3.select("#resetBtn").on("click", reset);
 }
 
 main();

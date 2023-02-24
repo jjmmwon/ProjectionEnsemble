@@ -3,16 +3,8 @@ import snap
 import argparse
 
 class GraphGenerator:
-    def __init__(self,
-                 uid,
-                 embeddings,
-                 data_title,
-                 k=5):
-
-        self.data_title = data_title
-        self.uid = uid
+    def __init__(self, embeddings):
         self.embeddings = embeddings
-        self.path = f'./static/result/{data_title}_{self.uid}'
         self.k = [5,7,10,15,20]
         
         self.data = None
@@ -52,11 +44,7 @@ class GraphGenerator:
         make distant matrix -> clustering -> save graph
         """
         for e in self.embeddings:
-            data = e["embedding"]
-
-            if "class" in data.columns:
-                data = data.drop('class', axis=1)
-            self.data = data.to_numpy()
+            self.data = e
             self.generate_distance_matrix()
             self.kNN()
         return self.graph_dict
