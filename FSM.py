@@ -94,7 +94,7 @@ class FSM:
             FS_list.append(subgraph)
         
         # subgraph 결과 저장
-        self.result['FSM'].append({'k': k, 'min_support': ms, 'FS':FS_list.sort(key=lambda x: -len(x))})
+        self.result['FSM'].append({'k': k, 'min_support': ms, 'FS': sorted(FS_list, key=lambda x: -len(x))})
         
 
     def is_all_visited(self, visit, subgraph):

@@ -1,40 +1,41 @@
 export {Heatmap};
 
 class Heatmap{
-    margin={
-        top:20, right:20, bottom: 20, left:20
-    }
-    constructor(svg, width=300, height=300){
-        this.svg = svg;
-        this.width= width - this.margin.left - this.margin.right;
-        this.height = height - this.margin.top - this.margin.bottom;
+    constructor(div, width=300, height=300){
+        this.div = div;
+        this.width= width;
+        this.height = height;
+        this.margin = {
+            top:20, right:20, bottom: 20, left:20
+        };
         this.k = [5,7,10,15,20];
         this.minSupport = [6,7,8,9,10];
         this.handlers = {};
     }
 
     initialize(){
-        this.svg = d3.select(this.svg);
+        this.div = d3.select(this.div).append("div");
+        this.svg = this.div.append("svg");
         this.container = this.svg.append("g");
         this.xAxis = this.svg.append("g");
         this.yAxis = this.svg.append("g");
 
 
         this.svg
-            .attr("width", this.width + this.margin.left + this.margin.right)
-            .attr("height", this.height + this.margin.top + this.margin.bottom);
+            .attr("width", this.width)
+            .attr("height", this.height);
 
         this.container
             .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
         this.xScale = d3.scaleBand()
                         .domain(this.minSupport)
-                        .range([0,this.width])
+                        .range([0,this.width  - this.margin.left - this.margin.right])
                         .padding(0.01);
         
         this.yScale = d3.scaleBand()
                         .domain(this.k)
-                        .range([0,this.height])
+                        .range([0,this.height - this.margin.top - this.margin.bottom])
                         .padding(0.01);
         
         this.colorScale = d3.scaleLinear()
@@ -51,6 +52,8 @@ class Heatmap{
 
         this.kBand = this.k.map((d)=>this.yScale(d));
         this.msBand = this.minSupport.map((d)=>this.xScale(d));
+
+        return this
     }
 
     update(fsm){
@@ -65,6 +68,8 @@ class Heatmap{
             .attr("height", this.yScale.bandwidth())
             .style("fill", (d) => this.colorScale(d['FS'].length))
             .on("click", (event) => this.clickCell(event));
+
+        return this
     }
 
     on(eventType, handler){

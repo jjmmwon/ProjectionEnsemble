@@ -36,7 +36,7 @@
     <main class="container flex-fill">
       <div class="row g-2" style="height:100%;">
         <div class="col-2">
-          <div class="sidebar d-flex flex-column">
+          <div class="sidebar d-flex flex-column" style="height:100%;">
             <div class="select-section bg-white d-flex flex-column rounded-3 mb-2">
               <div class="d-flex px-3 pt-2 pb-1 align-items-center justify-content-between">
                 <div class="fw-bold">Data</div>
@@ -179,32 +179,33 @@
                 </div>
               </div>
             </div>
-            <div class="histogram-section bg-white mb-2 px-3 py-2">
+            <div class="fsView-section bg-white mb-2 px-3 py-2">
               <div class="fw-bold">FS View</div>
             </div>
             <div class="heatmap-section bg-white px-3 py-2 flex-fill">
-              <div class="fw-bold">FS View</div>
+              <div class="fw-bold">Heatmap</div>
             </div>
           </div>
         </div>
         <div class="col-10">
           <div
             class="main-section bg-white d-flex flex-column rounded-3 px-3 py-2"
+            style="height:100%;"
           >
             <div class="d-flex">
               <div class="fs-5 fw-bold">Ensemble DR</div>
               <div>
-                <button class="btn btn-outline-primary ms-3 py-1" id="runBtn">
+                <button class="btn btn-primary ms-3 py-1" id="runBtn">
                   RUN
                 </button>
               </div>
               <div>
-                <button class="btn btn-outline-danger ms-3 py-1" id="resetBtn">
+                <button class="btn btn-danger ms-2 py-1" id="resetBtn" style="width:70px;">
                   RESET
                 </button>
               </div>
             </div>
-            <div class="scatterplot-section d-flex flex-wrap mt-2 text-center">
+            <div class="scatterplot-section d-flex flex-wrap mt-2 text-center" style="font-size:15px;">
             </div>
           </div>
         </div>

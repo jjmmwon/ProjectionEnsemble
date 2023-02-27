@@ -1,4 +1,4 @@
-import { addTsne, addUmap, ensembleDR } from "./Update.mjs";
+import { addTsne, addUmap, ensembleDR, reset } from "./Update.mjs";
 import { scatterplots } from "./store.mjs";
 
 function main() {

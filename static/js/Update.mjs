@@ -1,7 +1,5 @@
 import { Scatterplot } from "./Scatterplot.mjs";
-import { scatterplots } from "./store.mjs";
-import { Histogram } from "./Histogram.mjs";
-import { Heatmap } from "./Heatmap.mjs";
+import { scatterplots, fsview, heatmap } from "./store.mjs";
 
 let title,
     init,
@@ -9,8 +7,7 @@ let title,
     iter,
     lr,
     nNeighbors,
-    minDist,
-    sc;
+    minDist;
 
 async function addTsne() {
   if (scatterplots.length() > 9) {
@@ -30,10 +27,10 @@ async function addTsne() {
   iter = d3.select("#iter").property("value");
   lr = d3.select("#lr").property("value");
 
-  sc = new Scatterplot(
+  let sc = new Scatterplot(
     ".scatterplot-section",
-    280,
-    280,
+    290,
+    290,
     "t-SNE",
     { init: init, perp: perp, iter: iter, lr: lr }
   );
@@ -68,10 +65,10 @@ async function addUmap() {
   nNeighbors = d3.select("#nNeighbors").property("value");
   minDist = d3.select("#minDist").property("value");
 
-  sc = new Scatterplot(
+  let sc = new Scatterplot(
     ".scatterplot-section",
-    280,
-    280,
+    290,
+    290,
     "UMAP",
     { n_neighbors: nNeighbors, min_dist: minDist}
   );
@@ -93,11 +90,18 @@ async function ensembleDR(){
   await d3
     .json(`http://127.0.0.1:50001/ensembleDR`)
     .then((fsm) => {
-      console.log(fsm);
+      fsview.update((fsm.FSM)[0].FS);
+      heatmap.update(fsm.FSM);
     });
 }
 
-export { addTsne, addUmap, ensembleDR };
+function reset(){ 
+  scatterplots.reset();
+  fsview.reset();
+  heatmap.reset();
+}
+
+export { addTsne, addUmap, ensembleDR, reset };
 
 // let boxes,
 //     settings = [],

@@ -1,3 +1,72 @@
+// export function scatterplot(div){
+//   const [width, height] = [290,290];
+//   const margin = {
+//     top:20,
+//     right:20,
+//     bottom:30,
+//     left:30
+//   };
+//   const div = d3.select(div);
+//   const scatterplots = [];
+
+//   function add(method, hyperparameters){
+//     let sc = div.append("div");
+//     sc.classed("scatterplot p-1 m-1 rounded-3 border border-dark justify-content-center", true)
+//       .style("position", "relative");
+//     let header = div.append("div")
+//       .classed("d-flex justify-content-between", true);
+//     let hpram = div.append("div");
+//     drawHeader(header, hpram, method, hyperparameters);
+//   }
+
+//   function update(){
+    
+//   }
+
+
+//   function reset(){
+
+//   }
+
+//   function drawHeader(header, hpram, method, hyperparameters){
+//     header
+//       .append("div")
+//       .classed("fs-6 fw-bold ms-2", true)
+//       .text(`${method}`);
+    
+//     delBtn = header
+//       .append("i")
+//       .classed("bi bi-x-circle me-2 deleteBtn", true);
+
+//     delBtn
+//       .on("mouseover",()=>{
+//         delBtn
+//           .classed("bi-x-circle", false)
+//           .classed("bi-x-circle-fill", true);
+//       })
+//       .on("mouseout", ()=>{
+//         delBtn
+//           .classed("bi-x-circle-fill", false)
+//           .classed("bi-x-circle", true);
+//       });
+
+//     hpram
+//       .append("div")
+//       .classed("hyperparameters", true)
+//       .text( method == "t-SNE" ? 
+//           `init: ${hyperparameters.init}, ` +
+//           `perp: ${hyperparameters.perp}, ` +
+//           `iter: ${hyperparameters.iter}, ` +
+//           `  lr: ${hyperparameters.lr}`
+//           : `n_neighbors: ${hyperparameters.n_neighbors}, ` +
+//             `min_dist: ${hyperparameters.min_dist}`
+//       );
+    
+//     return this;
+//   }
+// }
+
+
 export { Scatterplot };
 class Scatterplot {
   constructor(div, width, height, method, hyperparameters) {
@@ -35,7 +104,7 @@ class Scatterplot {
       .style("position", "absolute")
       .style("width","100%")
       .style("height","90%")
-      .classed("d-flex justify-content-center align-items-center", true)
+      .classed("loading-section d-flex justify-content-center align-items-center", true)
       .append("div")
       .classed("spinner-border", true)
       .attr("role", "status")
@@ -68,8 +137,9 @@ class Scatterplot {
       .on("end", (event) => {
         this.brushCircles(event);
       });
-
+    
     this.container.call(this.brush);
+    return this;
   }
 
   drawHeader(){
@@ -106,11 +176,13 @@ class Scatterplot {
           : `n_neighbors: ${this.hyperparameters.n_neighbors}, ` +
             `min_dist: ${this.hyperparameters.min_dist}`
       );
+    
+    return this;
   }
 
   //update event
   update(data) {
-    d3.select(".spinner-border")
+    d3.select(".loading-section")
       .remove();
 
     this.data = data;
@@ -157,7 +229,7 @@ class Scatterplot {
         );
       })
       .attr("fill",(d)=> this.classColorScale(d["class"]))
-      .attr("opacity", 0.6)
+      .attr("opacity", 0.7)
       .attr("r", 2);
     
     // add axes
@@ -173,6 +245,8 @@ class Scatterplot {
       .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`)
       .transition()
       .call(d3.axisLeft(this.yScale));
+    
+    return this;
   }
 
   isBrushed(d, selection) {
@@ -188,40 +262,28 @@ class Scatterplot {
     let selection = event.selection,
       brushedIndex = new Set(
         this.data
+          .embedding
           .filter((d) => this.isBrushed(d, selection))
           .map((d) => d["idx"])
       );
-    if (this.handlers.brush) this.handlers.brush(brushedIndex);
+    if (this.handlers.brush){
+      this.handlers.brush(brushedIndex);
+    } 
   }
 
   on(eventType, handler) {
     this.handlers[eventType] = handler;
+    return this;
   }
   
-  updateBrushSet(brushedIndex) {
-    brushedIndex.forEach((val) => {
+  updateBrushSet(addSet, delSet) {
+    addSet.forEach((val) => {
       this.brushedSet.add(val);
     });
+    delSet.forEach((val)=>{
+      this.brushedSet.delete(val);
+    })
 
     this.circles.classed("brushed", (d) => this.brushedSet.has(d["idx"]));
-  }
-
-  resetBrushSet() {
-    this.brushedSet = new Set();
-    this.circles.classed("brushed", false);
-  }
-
-  updateFrqSubG(frqSubG) {
-    let color;
-    this.circles.transition().attr("fill", "steelblue");
-    frqSubG.forEach((fs, i) => {
-      if (i < 9) {
-        color = this.frqSubgColorScale(i + 1);
-        this.circles
-          .filter((d) => fs.includes(Number(d["idx"])))
-          .transition()
-          .attr("fill", color);
-      }
-    });
   }
 }

@@ -30,24 +30,9 @@ body{
   text-align:center;
 }
 
-.histogram-section{
+.fsView-section{
   height:350px;
-}
-
-#resetBtn{
-  width:70px;
-}
-
-.sidebar{
-  height:100%;
-}
-
-.main-section{
-  height:100%;
-}
-
-.scatterplot-section{
-  font-size:15px;
+  overflow:auto;
 }
 
 i{
@@ -59,109 +44,7 @@ i{
   margin:0 !important;
 }
 
-
-/* body {
-  font-size:20px;
-  font-weight: bold;
-  height:100vh;
+.brushed {
+  stroke-width: 1;
+  stroke: gray;
 }
-
-.container {
-  width:100%;
-  padding:0;
-  background-color: white;
-  display: grid;
-  grid-template-columns: 5fr 2fr;
-}
-
-.nopadding{
-  padding:0 !important;
-  margin:0 !important;
-}
-
-.data-section, .tsne-section, .umap-section, .setting-section{
-  padding:15px 15px 10px 15px;
-  margin-right:5px;
-  border-radius: 0.5rem;
-}
-
-.input-section{
-  display:grid;
-  grid-template-columns: 2fr 3.5fr 2fr 2fr;
-  margin:10px;
-}
-
-.tsne, .umap, .setting{
-  display:flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom:10px;
-}
-
-#dataTitle{
-  width:240px;
-  height:40px;
-}
-
-.hyperparameters{
-  display:grid;
-  margin:3px 0px;
-}
-
-.hpram-text{
-  display:flex;
-  align-items: center;
-  font-weight:lighter;
-  font-size:20px;
-}
-
-#init{
-  width:110px;
-}
-
-#perplexity, #learningRate, #iteration, #nNeighbors, #minDist{
-  width:60px;
-  margin-left:10px;
-}
-
-#tsneAdd, #umapAdd, #runBtn, #resetBtn{
-  width:60px;
-  height:35px;
-  line-height: 17px;
-  margin-right:25px;
-  justify-content: center;
-  text-align: center;
-  align-items: center;
-}
-
-#umapAdd{
-  margin-right:15px;
-}
-#runBtn{
-  margin-right: 0px;
-  margin-left:15px;
-}
-
-#resetBtn{
-  padding: 0px;
-  margin-right: 10px;
-}
-
-.settings{
-  display:grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
-  grid-row-gap:5px;
-  margin:10px;
-}
-
-
-.box{
-  width:35px;
-  height:35px;
-  margin:3px;
-  border-width:4px;
-  border-radius: 0.5rem;
-  background-color: white;
-}
-
- */
