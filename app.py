@@ -18,6 +18,7 @@ def index():
                   'fashion-mnist':'label',
                   'diabetes':'Diabetes_012'}
     ensemble_DR = EnsembleDR(uid)
+    ensemble_DR.load_test()
     
     return render_template("index.html")
 
@@ -30,6 +31,8 @@ def tsne():
     perp=int(request.args.get('perp'))
     lr= "auto" if request.args.get('lr')=="auto" else int(request.args.get('lr'))
     iteration=int(request.args.get('iter'))
+    i=int(request.args.get('i'))
+    return ensemble_DR.test_umap(i)
 
     return jsonify(
             ensemble_DR.run_tsne(
@@ -45,8 +48,10 @@ def tsne():
 @app.route("/umap")
 def umap():
     title=request.args.get('title')
+    i=int(request.args.get('i'))
     min_dist = float(request.args.get('minDist'))
     n_neighbors=int(request.args.get('nNeighbors'))
+    return ensemble_DR.test_umap(i)
 
 
     return jsonify(
@@ -60,6 +65,8 @@ def umap():
 
 @app.route("/ensembleDR")
 def ensembleDR():
+    print("ensemble DR running")
+    return jsonify(ensemble_DR.test_DR())
     return jsonify(ensemble_DR.run())
 
 @app.route("/reset")

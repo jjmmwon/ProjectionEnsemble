@@ -57,7 +57,6 @@ class Heatmap{
     }
 
     update(fsm){
-        console.log(fsm);
         this.container
             .selectAll("rect")
             .data(fsm)

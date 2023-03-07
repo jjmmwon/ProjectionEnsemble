@@ -16,7 +16,13 @@
     />
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://d3js.org/d3-queue.v3.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js"></script>
+    <script src="https://unpkg.com/d3-array@1"></script>
+    <script src="https://unpkg.com/d3-collection@1"></script>
+    <script src="https://unpkg.com/d3-path@1"></script>
+    <script src="https://unpkg.com/d3-shape@1"></script>
+    <script src="https://unpkg.com/d3-sankey@0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-array@3"></script>
+
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='css/index.css') }}"
@@ -37,51 +43,56 @@
       <div class="row g-2" style="height:100%;">
         <div class="col-2">
           <div class="sidebar d-flex flex-column" style="height:100%;">
-            <div class="select-section bg-white d-flex flex-column rounded-3 mb-2">
-              <div class="d-flex px-3 pt-2 pb-1 align-items-center justify-content-between">
-                <div class="fw-bold">Data</div>
-                <div>
-                  <select
-                    id="dataTitle"
-                    class="form-select"
-                    aria-label="Default select example"
-                    style="font-size: 13px"
-                  >
-                    <option selected value="breast_cancer">
-                      Breast Cancer(569)
-                    </option>
-                    <option value="milknew">Milk Quality(1059)</option>
-                    <option value="Cigar">Cigar(1380)</option>
-                    <option value="BudgetUK">Butget UK(1519)</option>
-                    <option value="BudgetItaly">Butget Italy(1729)</option>
-                    <option value="mobile_price">Mobile Price(2000)</option>
-                    <option value="black_politicians">
-                      Black Politicians(5593)
-                    </option>
-                    <option value="injury">Injury(6822)</option>
-                    <option value="fashion-mnist">Fashion-MNIST(5000)</option>
-                    <option value="Dry_Bean_Dataset">Dry Bean()</option>
-                    <option value="diabetes">Diabetes(15000)</option>
-                    <option value="mm_nhis">NHIS(18790)</option>
-                    <option value="labsup">Labsup(31857)</option>
-                  </select>
-                </div>
-              </div>
-              <div class="tsne-section d-flex flex-column">
-                <div
-                  class="d-flex px-3 py-1 align-items-center justify-content-between"
-                >
-                  <div class="fw-bold">t-SNE</div>
+            <div class="configView bg-white d-flex flex-column rounded-3 mb-2 px-3">
+              <div class="fw-bold pt-2 pb-1">Configuration View</div>
+              <div class="config-section px-1">
+                <div class="d-flex pb-1 align-items-center justify-content-between">
+                  <div class="fw-bold">Data</div>
                   <div>
-                    <button class="btn btn-primary ms-3 p-0" id="tsneAdd">
-                      ADD
-                    </button>
+                    <select
+                      id="dataTitle"
+                      class="form-select py-1"
+                      aria-label="Default select example"
+                      style="font-size: 13px;"
+                    >
+                      <option selected value="breast_cancer">
+                        Breast Cancer(569)
+                      </option>
+                      <option value="milknew">Milk Quality(1059)</option>
+                      <option value="Cigar">Cigar(1380)</option>
+                      <option value="BudgetUK">Butget UK(1519)</option>
+                      <option value="BudgetItaly">Butget Italy(1729)</option>
+                      <option value="mobile_price">Mobile Price(2000)</option>
+                      <option value="black_politicians">
+                        Black Politicians(5593)
+                      </option>
+                      <option value="injury">Injury(6822)</option>
+                      <option value="fashion-mnist">Fashion-MNIST(5000)</option>
+                      <option value="Dry_Bean_Dataset">Dry Bean()</option>
+                      <option value="diabetes">Diabetes(15000)</option>
+                      <option value="mm_nhis">NHIS(18790)</option>
+                      <option value="labsup">Labsup(31857)</option>
+                    </select>
                   </div>
                 </div>
-                <div class="row px-3 py-1">
-                  <div class="col">
-                    <div class="d-flex justify-content-between">
-                      <div>Init</div>
+                <div class="d-flex pb-1 align-items-center justify-content-between">
+                  <div class="fw-bold">Method</div>
+                  <div>
+                    <select
+                      id="method"
+                      class="form-select py-1 px-2"
+                      aria-label="Default select example"
+                      style="font-size: 13px; width: 100px"
+                    >
+                      <option selected value="t-SNE">t-SNE</option>  
+                      <option value="UMAP">UMAP</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="t-SNE">
+                  <div class="d-flex pb-1 align-items-center justify-content-between">
+                    <div class="fw-bold">Init</div>
+                    <div>
                       <div>
                         <select
                           id="init"
@@ -95,95 +106,83 @@
                       </div>
                     </div>
                   </div>
-                  <div class="col">
-                    <div class="d-flex justify-content-between">
-                      <div>perp</div>
-                      <div>
-                        <input
-                          class="form-control px-1 py-1"
-                          type="text"
-                          id="perp"
-                          value="30"
-                        />
-                      </div>
+                  <div class="d-flex pb-1 align-items-center justify-content-between">
+                    <div class="fw-bold">Perplexity</div>
+                    <div>
+                      <input
+                        class="form-control px-1 py-1"
+                        type="text"
+                        id="perp"
+                        value="30"
+                      />
+                    </div>
+                  </div>
+                  <div class="d-flex pb-1 align-items-center justify-content-between">
+                    <div class="fw-bold">Iteration</div>
+                    <div>
+                      <input
+                        class="form-control px-1 py-1"
+                        type="text"
+                        id="iter"
+                        value="300"
+                      />
+                    </div>
+                  </div>
+                  <div class="d-flex pb-1 align-items-center justify-content-between">
+                    <div class="fw-bold">Learning Rate</div>
+                    <div>
+                      <input
+                        class="form-control px-1 py-1"
+                        type="text"
+                        id="lr"
+                        value="auto"
+                      />
                     </div>
                   </div>
                 </div>
-                <div class="row px-3 py-1">
-                  <div class="col">
-                    <div class="d-flex justify-content-between">
-                      <div>iter</div>
-                      <div>
-                        <input
-                          class="form-control px-1 py-1"
-                          type="text"
-                          id="iter"
-                          value="300"
-                        />
-                      </div>
+                <div class="UMAP" style="display:none">
+                  <div class="d-flex pb-1 justify-content-between">
+                    <div class="fw-bold">n-Neighbors</div>
+                    <div>
+                      <input
+                        class="form-control px-1 py-1"
+                        type="text"
+                        id="nNeighbors"
+                        value="15"
+                      />
                     </div>
                   </div>
-                  <div class="col">
-                    <div class="d-flex justify-content-between">
-                      <div>lr</div>
-                      <div>
-                        <input
-                          class="form-control px-1 py-1"
-                          type="text"
-                          id="lr"
-                          value="auto"
-                        />
-                      </div>
+                  <div class="d-flex pb-1 justify-content-between">
+                    <div class="fw-bold">Min Dist</div>
+                    <div>
+                      <input
+                        class="form-control px-1 py-1"
+                        type="text"
+                        id="minDist"
+                        value="0.1"
+                      />
                     </div>
                   </div>
                 </div>
-              </div>
-              <div class="umap-section d-flex flex-column">
-                <div
-                  class="d-flex px-3 py-1 align-items-center justify-content-between"
-                >
-                  <div class="fw-bold">UMAP</div>
-                  <div>
-                    <button class="btn btn-primary ms-3 py-1" id="umapAdd">
-                      ADD
-                    </button>
-                  </div>
+                <div class="d-flex pb-1 justify-content-end">
+                  <button class="btn btn-primary py-1" id="addBtn">
+                    ADD
+                  </button>
                 </div>
-                <div class="row px-3 pt-1 pb-2">
-                  <div class="col">
-                    <div class="d-flex justify-content-between">
-                      <div class="me-2">n_neighbors</div>
-                      <div>
-                        <input
-                          class="form-control px-1 py-1"
-                          type="text"
-                          id="nNeighbors"
-                          value="15"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col">
-                    <div class="d-flex justify-content-between">
-                      <div>min_dist</div>
-                      <div>
-                        <input
-                          class="form-control px-1 py-1"
-                          type="text"
-                          id="minDist"
-                          value="0.1"
-                        />
-                      </div>
-                    </div>
-                  </div>
+                <div class="d-flex pb-3 justify-content-between">
+                  <button class="btn btn-outline-primary" id="runBtn">RUN</button>
+                  <button class="btn btn-outline-danger" id="resetBtn">RESET</button>
                 </div>
               </div>
+              
             </div>
             <div class="fsView-section bg-white mb-2 px-3 py-2">
-              <div class="fw-bold">FS View</div>
+              <div class="fw-bold">Frequent Subset View</div>
+              <div class="fsView"></div>
             </div>
             <div class="heatmap-section bg-white px-3 py-2 flex-fill">
               <div class="fw-bold">Heatmap</div>
+              <div class="heatmap"></div>
             </div>
           </div>
         </div>
@@ -192,21 +191,9 @@
             class="main-section bg-white d-flex flex-column rounded-3 px-3 py-2"
             style="height:100%;"
           >
-            <div class="d-flex">
-              <div class="fs-5 fw-bold">Ensemble DR</div>
-              <div>
-                <button class="btn btn-primary ms-3 py-1" id="runBtn">
-                  RUN
-                </button>
-              </div>
-              <div>
-                <button class="btn btn-danger ms-2 py-1" id="resetBtn" style="width:70px;">
-                  RESET
-                </button>
-              </div>
-            </div>
+            <div class="fs-5 fw-bold">Embedding View</div>
             <div class="scatterplot-section d-flex flex-wrap mt-2 text-center" style="font-size:15px;">
-            </div>
+          </div>
           </div>
         </div>
       </div>
@@ -214,10 +201,6 @@
     <script
       type="module"
       src="{{ url_for('static', filename='js/index.js') }}"
-    ></script>
-    <script
-      type="module"
-      src="{{ url_for('static', filename='js/Update.mjs') }}"
     ></script>
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"

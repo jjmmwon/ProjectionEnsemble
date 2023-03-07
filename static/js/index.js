@@ -1,9 +1,11 @@
-import { addTsne, addUmap, ensembleDR, reset } from "./Update.mjs";
-import { scatterplots } from "./store.mjs";
+import { changeMethod, addEmbedding, ensembleDR, reset } from "./EventHandlers.mjs";
 
 function main() {
-  d3.select("#tsneAdd").on("click", addTsne);
-  d3.select("#umapAdd").on("click", addUmap);
+  for(let i=0; i<10; i++){
+    addEmbedding(i);
+  }
+  d3.select("#method").on("change", changeMethod);
+  d3.select("#addBtn").on("click", addEmbedding);
   d3.select("#runBtn").on("click", ensembleDR);
   d3.select("#resetBtn").on("click", reset);
 }

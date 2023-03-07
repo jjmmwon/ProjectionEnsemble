@@ -8,19 +8,13 @@ body{
   font-size:16px;
 }
 
-#perp, #iter, #lr{
-  width:50px;
+#perp, #iter, #lr, #nNeighbors, #minDist{
+  width:60px;
   text-align: center;
   font-size: 13px;
 }
 
-#nNeighbors, #minDist{
-  width: 40px;
-  text-align: center;
-  font-size: 13px;
-}
-
-#tsneAdd, #umapAdd, #runBtn, #resetBtn{
+#addBtn{
   width:50px;
   height:30px;
   font-size:15px;
@@ -30,6 +24,15 @@ body{
   text-align:center;
 }
 
+#runBtn, #resetBtn{
+  width:130px;
+  height:32px;
+  font-size:18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align:center;
+}
 .fsView-section{
   height:350px;
   overflow:auto;

@@ -1,56 +1,76 @@
 import { Heatmap } from "./Heatmap.mjs";
-import { Histogram } from "./Histogram.mjs";
+import { Sankey } from "./Sankey.mjs";
+import { Scatterplot } from "./Scatterplot.mjs";
 
-let scatterplots = {
-  scatterplot: [],
 
-  append(sc) {
+let embeddingView = {
+  scatterplots: [],
+  brushedSet: new Set(),
+  add(method, params) {
+    let sc = new Scatterplot(
+      ".scatterplot-section",
+      290,
+      290,
+      method,
+      params,
+      this.brushedSet
+    );
+
     sc.initialize()
-      .on("brush", (brushedIndex) => {
-        this.scatterplot.forEach((sc2) => {
-          sc2.updateBrushSet(brushedIndex, new Set());
+      .on("brush", (brushedSet) => {
+        this.brushedSet.clear();
+        brushedSet.forEach((d)=>this.brushedSet.add(d));        
+        this.scatterplots.forEach((sc2) => {
+          sc2.highlightBrushed();
+          if(sc !== sc2) sc2.hideBrush();
         });
       })
-    this.scatterplot.push(sc);
+    this.scatterplots.push(sc);
 
     sc.delBtn.on("click", () => {
       sc.div.remove();
-      this.scatterplot.forEach((d, i) =>
-        d == sc ? this.scatterplot.splice(i, 1) : null
+      this.scatterplots.forEach((d, i) =>
+        d == sc ? this.scatterplots.splice(i, 1) : null
       );
     });
+
+    return sc;
   },
 
-  update(sc, data) {
-    sc.update(data);
+  update(fsm){
+    this.scatterplots.forEach((sc)=>{
+      sc.drawFS(fsm);
+    })
   },
 
   reset() {
-    this.scatterplot.forEach((sc) => {
+    this.scatterplots.forEach((sc) => {
       sc.div.remove();
     });
-    this.scatterplot = [];
+    this.scatterplots = [];
   },
 
   length() {
-    return this.scatterplot.length;
+    return this.scatterplots.length;
   },
 };
 
 let fsview = {
-  histogram: new Histogram(".fsView-section", 280, 300),
+  sankey: new Sankey(".fsView", 280, 300),
 
-  update(data) {
-    this.histogram.initialize().update(data);
+  update(data, k, ms) {
+    this.sankey
+      .initialize()
+      .update(data, k,  ms);
   },
 
   reset() {
-    this.histogram.div.remove();
+    this.sankey.div.remove();
   },
 };
 
 let heatmap = {
-  heatmap: new Heatmap(".heatmap-section", 250, 250),
+  heatmap: new Heatmap(".heatmap", 250, 250),
 
   update(fsm) {
     this.heatmap
@@ -64,4 +84,4 @@ let heatmap = {
   },
 };
 
-export { scatterplots, fsview, heatmap };
+export { embeddingView, fsview, heatmap };

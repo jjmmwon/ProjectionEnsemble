@@ -20,6 +20,7 @@ class FSM:
 
         self.FS_set = []
         self.adjacency_list = None
+        self.outliers = {i for i in range(self.node_len)}
 
     def generate_mother_graph(self):
         """
@@ -89,12 +90,17 @@ class FSM:
                 subgraph.update(self.adjacency_list[next_node])
 
             subgraph = (list(subgraph))
-            if len(subgraph) == 1:
+            if len(subgraph) < 10:
                 continue
             FS_list.append(subgraph)
+            self.outliers -= set(subgraph)
+
         
         # subgraph 결과 저장
-        self.result['FSM'].append({'k': k, 'min_support': ms, 'FS': sorted(FS_list, key=lambda x: -len(x))})
+        FS_list.sort(key = lambda x : -len(x))
+        FS_dict = {f'FS{i}': FS_list[i] for i in range(len(FS_list))}
+        FS_dict['outliers'] = list(self.outliers)
+        self.result['FSM'].append({'k': k, 'min_support': ms, 'FS':FS_dict})
         
 
     def is_all_visited(self, visit, subgraph):

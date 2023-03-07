@@ -4,11 +4,26 @@ from GraphGen import GraphGenerator
 from FSM import FSM
 from Procrustes import Procrustes
 import json
+import numpy as np
 
 class EnsembleDR:
     def __init__(self, uid):
         self.uid = uid
         self.embeddings = []
+
+    def load_test(self):
+        self.embeddings = np.load('./static/result/embeddings_fmnist.npy')
+        with open('./static/result/test_fmnist.json','r') as t:
+            self.test = json.load(t)        
+        with open('./static/result/target_fmnist.json','r') as t:
+            self.target = json.load(t)
+        with open('./static/result/ensembleDR_fmnist.json','r') as t:
+            self.DR = json.load(t)  
+    
+    def test_umap(self, i):
+        return self.test[i]
+    def test_DR(self):
+        return self.DR
 
     def run_tsne(self, title, init, perp, lr, iteration, class_col):
         tsne = TSNE(data_title=title,
@@ -71,8 +86,7 @@ class EnsembleDR:
 
     def run(self):
         self.generate_graph()
-
-        return self.run_FSM()
+        return dict(self.run_FSM(), **self.target)
 
     def reset(self):
         self.embeddings = []
@@ -80,6 +94,7 @@ class EnsembleDR:
 
 
     def embedding_to_json(self, method, hyperparameter, embedding, target=None):
+        self.target ={"class": ["None" if target is None else target[i] for i in range(embedding.shape[0])]}
         result = {
             "method":method,
             "hyperparameter": hyperparameter,
@@ -87,7 +102,7 @@ class EnsembleDR:
                             "idx": i,
                             "0": float(embedding[i][0]),
                             "1": float(embedding[i][1]),
-                            "class": "None" if target is None else target[i]
+                            "class": self.target["class"][i]
                         } for i in range(embedding.shape[0])
                         ]
         }
