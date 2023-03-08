@@ -153,6 +153,7 @@ class Scatterplot {
           "translate(" + this.xScale(d["0"]) + "," + this.yScale(d["1"]) + ")"
         );
       })
+      //.attr("d", d3.symbol().type((d) => this.classColorScale(d["class"])).size(20))
       .attr("fill", "#000")//(d)=> this.classColorScale(d["class"]))
       .attr("opacity", 0.4)
       .attr("r", 2.3);

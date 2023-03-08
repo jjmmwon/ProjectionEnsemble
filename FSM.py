@@ -1,6 +1,17 @@
 import argparse
 import snap
 import numpy as np
+from typing import Dict, List
+from dataclasses import dataclass
+
+# @dataclass
+# class Graph:
+#     edge: List[dict]
+#     node: List[dict]
+    
+#     def to_dict(self) -> Dict[str, str]:
+#         return {"edge" : self.edge, "node": self.node}
+
 
 class FSM:
     def __init__(self,

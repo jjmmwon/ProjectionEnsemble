@@ -25,12 +25,11 @@ class EnsembleDR:
     def test_DR(self):
         return self.DR
 
-    def run_tsne(self, title, init, perp, lr, iteration, class_col):
+    def run_tsne(self, title, init, perp, lr, class_col):
         tsne = TSNE(data_title=title,
                     init=init,
                     perplexity=perp,
                     learning_rate=lr,
-                    max_iter=iteration,
                     class_col=class_col)
 
         embedding, target = tsne.run()
@@ -46,7 +45,6 @@ class EnsembleDR:
                         "init":init,
                         "perp":perp,
                         "lr": lr,
-                        "iter":iteration
                     },
                     embedding = embedding,
                     target = target

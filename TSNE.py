@@ -15,7 +15,6 @@ class TSNE:
                  data_title,
                  init = 'random',
                  perplexity = 30,
-                 max_iter=800,
                  learning_rate="auto", 
                  class_col=None):
                      
@@ -23,7 +22,6 @@ class TSNE:
         self.data_title = data_title
         self.init = init
         self.perplexity = perplexity
-        self.max_iter = max_iter
         self.learning_rate = learning_rate
         self.class_col = class_col
 
@@ -74,7 +72,6 @@ class TSNE:
             initialization = self.init,
             return_loss = return_loss,
             perplexity = self.perplexity,
-            max_iter = self.max_iter,
             learning_rate = self.learning_rate)
 
         self.embedding , loss = Z
@@ -94,7 +91,6 @@ def argparsing():
     parser.add_argument('--data_title', '-d', help="Data title for saving file name")
     parser.add_argument('--init', '-i', help="Initialization to use for t-sne")
     parser.add_argument('--perplexity', '-P', type = int, action = 'store', default = 30, help="Perplexity to use for t-sne")
-    parser.add_argument('--max_iter', '-I', type = int, action = 'store', default = 750, help="Iteration to use for t-sne")
     parser.add_argument('--learning_rate', '-L', type = int, action = 'store', default = -1, help="Learning Rate to use for t-sne")
     parser.add_argument('--class_col','-C', default= None, help="Name of class column" )
 
@@ -109,7 +105,6 @@ def main():
                 data_title=args.data_title,
                 init=args.init,
                 perplexity = args.perplexity, 
-                max_iter = args.max_iter, 
                 learning_rate = args.learning_rate,
                 class_col=args.class_col)
 
