@@ -1,7 +1,7 @@
 import argparse
 import snap
 import numpy as np
-from typing import Dict, List
+from typing import Dict, List, Union
 from dataclasses import dataclass
 
 # @dataclass
@@ -14,10 +14,7 @@ from dataclasses import dataclass
 
 
 class FSM:
-    def __init__(self,
-                 graph_dict,
-                 ):
-        
+    def __init__(self,graph_dict:Dict) -> None:
         self.graph_dict = graph_dict
         self.count = 10
         self.k_list = list(self.graph_dict.keys())
@@ -33,7 +30,7 @@ class FSM:
         self.adjacency_list = None
         self.outliers = {i for i in range(self.node_len)}
 
-    def generate_mother_graph(self):
+    def generate_mother_graph(self) -> None:
         """
         graph의 모든 edge를 포함하는 mother graph 생성
         """
@@ -45,7 +42,7 @@ class FSM:
             for edge in graph.Edges():
                 self.mother_graph.AddEdge(edge.GetSrcNId(),edge.GetDstNId())
 
-    def detect_frequent_edge(self):
+    def detect_frequent_edge(self) -> None:
         """
         mother_graph의 모든 edge를 반복하며 min_supports 이상 나타나는 edge만 남겨둔다.
         """
@@ -65,7 +62,7 @@ class FSM:
             for del_edge in del_edges[ms]:
                 self.frequent_subgraphs[ms].DelEdge(*del_edge)
     
-    def generate_adjacency_list(self, fs):
+    def generate_adjacency_list(self, fs) -> None:
         """
         mother_graph의 adjacency list 생성
         """
@@ -74,7 +71,7 @@ class FSM:
             self.adjacency_list[edge.GetSrcNId()].append(edge.GetDstNId())
             self.adjacency_list[edge.GetDstNId()].append(edge.GetSrcNId())
 
-    def get_subgraph(self, k, ms):
+    def get_subgraph(self, k: int, ms: int)-> None:
         """
         frequent edge 정보를 통해 frequent subgraph 나눈다.
         node 반복
@@ -124,7 +121,7 @@ class FSM:
                 return False, node
         return True, None
 
-    def run(self):
+    def run(self) -> Dict[str, List[Dict[str, Union[int, Dict[str, List]]]]]:
         for k in self.k_list:
             self.graphs = self.graph_dict[k]
             self.generate_mother_graph()    
@@ -133,23 +130,3 @@ class FSM:
                 self.generate_adjacency_list(self.frequent_subgraphs[ms])
                 self.get_subgraph(k, ms)
         return self.result
-
-def argparsing():
-    parser = argparse.ArgumentParser(description="Frequent Subgraph Mining")
-    parser.add_argument('--data_title', '-d', help="graph data title for FSM")
-    parser.add_argument('--min_supports', '-s', type = int, action = 'store', default = 8, help="min_supports for FSM")
-    parser.add_argument('--perplexity', '-P', type = int, action = 'store', default = -1, help="Perplexity")
-    parser.add_argument('--max_iter', '-I', type = int, action = 'store', default = -1, help="Iteration")
-    parser.add_argument('--learning_rate', '-L', type = int, action = 'store', default = -1, help="Learning Rate ('0' for auto)")
-
-    args = parser.parse_args()
-    return args
-
-
-def main():
-    args = argparsing()
-    fsm = FSM(args.data_title, perplexity=args.perplexity, iteration=args.max_iter, learning_rate= args.learning_rate, min_supports= args.min_supports)
-    fsm.run()
-
-if __name__== "__main__":
-    main()

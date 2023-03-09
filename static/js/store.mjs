@@ -1,6 +1,6 @@
-import { Heatmap } from "./Heatmap.mjs";
-import { Sankey } from "./Sankey.mjs";
-import { Scatterplot } from "./Scatterplot.mjs";
+import { Heatmap } from "./elements/Heatmap.mjs";
+import { Sankey } from "./elements/Sankey.mjs";
+import { Scatterplot } from "./elements/Scatterplot.mjs";
 
 
 let embeddingView = {
@@ -9,8 +9,8 @@ let embeddingView = {
   add(method, params) {
     let sc = new Scatterplot(
       ".scatterplot-section",
-      290,
-      290,
+      300,
+      300,
       method,
       params,
       this.brushedSet
@@ -43,19 +43,12 @@ let embeddingView = {
     })
   },
 
-  reset() {
-    this.scatterplots.forEach((sc) => {
-      sc.div.remove();
-    });
-    this.scatterplots = [];
-  },
-
   length() {
     return this.scatterplots.length;
   },
 };
 
-let fsview = {
+let fsView = {
   sankey: new Sankey(".fsView", 280, 300),
 
   update(data, k, ms) {
@@ -84,4 +77,4 @@ let heatmap = {
   },
 };
 
-export { embeddingView, fsview, heatmap };
+export { embeddingView, fsView, heatmap };
