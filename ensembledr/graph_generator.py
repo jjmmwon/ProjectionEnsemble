@@ -1,3 +1,4 @@
+# type: ignore
 import numpy as np
 import snap
 import argparse
@@ -17,7 +18,7 @@ class GraphGenerator:
         """
         generate distance matrix
         """
-        M = self.data.shape[0]
+        M = self.data.shape[0] 
         self.dist_matrix = np.zeros((M,M))
         self.dist_matrix = np.sum(np.square(self.data), axis=1) + (np.sum(np.square(self.data), axis=1)).reshape(-1,1) - 2*np.matmul(self.data, self.data.T)
 

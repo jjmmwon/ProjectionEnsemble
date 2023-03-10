@@ -1,0 +1,8 @@
+snap
+pandas 
+numpy
+scikit-learn
+snap-stanford
+networkx
+fastapi
+uvicorn
