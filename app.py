@@ -1,13 +1,12 @@
+import json
+import uuid
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
-import uuid
-import json
-
-from ensembledr import EnsembleDR, preset_methods, UMAPWrapper
-
+from ensembledr import EnsembleDR, UMAPWrapper, preset_methods
 
 uid = uuid.uuid4().hex[:8]
 class_list = {

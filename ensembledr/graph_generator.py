@@ -1,53 +1,30 @@
-# type: ignore
+from typing import Dict, List
+from itertools import combinations
+
+import networkx as nx
 import numpy as np
-import snap
-import argparse
-from typing import List, Dict
 
-class GraphGenerator:
-    def __init__(self, embeddings:List[np.ndarray]) -> None:
-        self.embeddings = embeddings
-        self.k = [5,7,10,15,20]
-        
-        self.data = None
-        self.graph = None
-        self.graph_dict = {k:[] for k in self.k}
-        self.dist_matrix = None
-
-    def generate_distance_matrix(self) -> None: 
-        """
-        generate distance matrix
-        """
-        M = self.data.shape[0] 
-        self.dist_matrix = np.zeros((M,M))
-        self.dist_matrix = np.sum(np.square(self.data), axis=1) + (np.sum(np.square(self.data), axis=1)).reshape(-1,1) - 2*np.matmul(self.data, self.data.T)
-
-    def kNN(self) -> None: 
-        """
-        make graph with k neighbors per each point
-        """
-        graph_list = [snap.TUNGraph.New() for _ in range(len(self.k))]
-        for g in graph_list:
-            for i in range(self.dist_matrix.shape[0]):
-                g.AddNode(i)
-        
-        for r, row in enumerate(self.dist_matrix):
-            nearest_neighbor = row.argsort()
-            for i, k in enumerate(self.k):
-                for j in range(1, k+1):
-                    graph_list[i].AddEdge(int(r), int(nearest_neighbor[j]))
-        
-        for i, g in enumerate(graph_list):
-            self.graph_dict[self.k[i]].append(g)
+ks = [5, 7, 10, 15, 20]
 
 
-    def run(self) -> Dict:
-        """
-        make distant matrix -> kNN -> save graph
-        """
-        for e in self.embeddings:
-            self.data = e
-            self.generate_distance_matrix()
-            self.kNN()
-        return self.graph_dict
-        
+def generate_graphs(embeddings: List[np.ndarray]) -> Dict[int, nx.Graph]:
+    N = embeddings[0].shape[0]
+    distance_matrix = np.zeros((N, N))
+    distance_matrix: np.ndarray = (
+        np.sum(np.square(embeddings[0]), axis=1)
+        + (np.sum(np.square(embeddings[0]), axis=1)).reshape(-1, 1)
+        - 2 * np.matmul(embeddings[0], embeddings[0].T)
+    )
+
+    graph_list = [nx.Graph() for _ in range(len(ks))]
+    for graph in graph_list:
+        graph.add_nodes_from(list(range(N)))
+
+    for r, row in enumerate(distance_matrix):
+        nearest_neighbor = row.argsort()
+        for i, graph in enumerate(graph_list):
+            graph.add_edges_from(
+                [(int(r), int(nearest_neighbor[j])) for j in range(1, ks[i] + 1)]
+            )
+
+    return {ks[i]: graph_list[i] for i in range(len(ks))}

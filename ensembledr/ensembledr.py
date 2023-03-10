@@ -7,7 +7,7 @@ from scipy.spatial import procrustes as _procrustes
 from sklearn.preprocessing import StandardScaler
 
 from .fsm import FSM
-from .graph_generator import GraphGenerator
+from .graph_generator import generate_graphs
 
 EmbeddingKey = Literal["0", "1", "c"]
 
@@ -53,7 +53,6 @@ class EnsembleDR:
             procrustes(embedding, embeddings[0]) for embedding in embeddings[1:]
         ]
 
-        graph_dict = GraphGenerator(embeddings=embeddings).run()
         result: List[List[Dict[EmbeddingKey, Union[float, int, str]]]] = [
             [
                 {"0": row[0], "1": row[1], "c": self.target[i]}
@@ -61,6 +60,7 @@ class EnsembleDR:
             ]
             for embedding in embeddings
         ]
+        graph_dict = generate_graphs(embeddings)
         frequent_subgraphs = FSM(graph_dict=graph_dict).run()
 
         return Result(embeddings=result, frequent_subgraphs=frequent_subgraphs)
