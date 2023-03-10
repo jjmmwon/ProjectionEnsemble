@@ -1,4 +1,4 @@
-import { embeddingView, fsView, heatmap } from "./store.mjs";
+import { embeddingView, fsView, heatmap } from './store.mjs';
 
 let title,
     method,
@@ -6,13 +6,12 @@ let title,
     id = 0;
 
 async function ensembleDR() {
-    title = d3.select("#dataTitle").property("value");
-    method = d3.select("#method").property("value");
-    console.log(`/ensembleDR?title=${title}&method=${method}`)
+    title = d3.select('#dataTitle').property('value');
+    method = d3.select('#method').property('value');
     await d3
         .json(`/ensembleDR?title=${title}&method=${method}`)
         .then((response) => {
-            console.log(response)
+            console.log(response);
             data = response;
             data.embedding.forEach((e) => {
                 embeddingView.add(
@@ -21,10 +20,8 @@ async function ensembleDR() {
                     e.hyperparameter,
                     e.embedding
                 );
-            })
-
+            });
         });
 }
-
 
 export { ensembleDR };

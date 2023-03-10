@@ -1,7 +1,7 @@
-import { ensembleDR } from "./embedElements.mjs";
+import { ensembleDR } from './embedElements.mjs';
 
 function main() {
-  d3.select("#runBtn").on("click", ensembleDR);
+    d3.select('#runBtn').on('click', ensembleDR);
 }
 
 main();
