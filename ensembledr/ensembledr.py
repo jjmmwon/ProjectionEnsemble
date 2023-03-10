@@ -29,7 +29,6 @@ class Result:
         }
 
 
-@dataclass
 class EnsembleDR:
     values: np.ndarray
     target: pd.Series
