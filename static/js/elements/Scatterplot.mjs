@@ -1,6 +1,7 @@
 export { Scatterplot };
 class Scatterplot {
-  constructor(div, width, height, method, params, brushedSet) {
+  constructor(id, div, width, height, method, params, brushedSet) {
+    this.id = id
     this.div = d3.select(div).append("div");
     this.margin = {
       top: 15,
@@ -31,17 +32,17 @@ class Scatterplot {
 
     this.drawHeader();
 
-    this.div
-      .append("div")
-      .style("position", "absolute")
-      .style("width","100%")
-      .style("height","90%")
-      .attr("class","loading-section d-flex justify-content-center align-items-center")
-      .append("div")
-      .attr("class", "spinner-border")
-      .attr("role", "status")
-      .append("span")
-      .attr("class", "visually-hidden");
+    // this.div
+    //   .append("div")
+    //   .style("position", "absolute")
+    //   .style("width","100%")
+    //   .style("height","90%")
+    //   .attr("class","loading-section d-flex justify-content-center align-items-center")
+    //   .append("div")
+    //   .attr("class", "spinner-border")
+    //   .attr("role", "status")
+    //   .append("span")
+    //   .attr("class", "visually-hidden");
 
 
     this.svg = this.div.append("svg");
@@ -76,7 +77,7 @@ class Scatterplot {
     this.header
       .append("div")
       .attr("class", "fs-6 fw-bold ms-2 mb-1")
-      .text(`${this.method}`)
+      .text(`${this.method}${this.id}`)
     
     this.delBtn = this.header
       .append("i")
@@ -95,7 +96,6 @@ class Scatterplot {
       });
 
     for(const key in this.params){
-      if(key == "title") continue;
       this.hpramDiv
         .append("span")
         .attr("class", "badge rounded-pill bg-warning text-dark")
@@ -107,15 +107,15 @@ class Scatterplot {
 
   //update event
   update(data) {
-    d3.select(".loading-section")
-      .remove();
+    // d3.select(".loading-section")
+    //   .remove();
 
     this.data = data;
 
-    let pMax = data.embedding[0]["0"],
-        pMin = data.embedding[0]["0"];
+    let pMax = this.data[0]["0"],
+        pMin = this.data[0]["0"];
 
-    data.embedding.forEach((d) => {
+    this.data.forEach((d) => {
       pMax = pMax < d["0"] ? d["0"] : pMax;
       pMin = pMin > d["0"] ? d["0"] : pMin;
       pMax = pMax < d["1"] ? d["1"] : pMax;
@@ -133,7 +133,7 @@ class Scatterplot {
 
     this.classColorScale = d3
       .scaleOrdinal()
-      .domain([...new Set(this.data.embedding.map((d) => d["class"]))])
+      .domain([...new Set(this.data.map((d) => d["class"]))])
       .range(d3.schemeCategory10);
 
     this.frqSubgColorScale = d3
@@ -144,7 +144,7 @@ class Scatterplot {
     // append points
     this.circles = this.container
       .selectAll("circle")
-      .data(this.data.embedding)
+      .data(this.data)
       .join("circle");
 
     this.circles
@@ -153,8 +153,7 @@ class Scatterplot {
           "translate(" + this.xScale(d["0"]) + "," + this.yScale(d["1"]) + ")"
         );
       })
-      //.attr("d", d3.symbol().type((d) => this.classColorScale(d["class"])).size(20))
-      .attr("fill", "#000")//(d)=> this.classColorScale(d["class"]))
+      .attr("fill", (d)=> this.classColorScale(d["class"]))
       .attr("opacity", 0.4)
       .attr("r", 2.3);
     
@@ -195,7 +194,6 @@ class Scatterplot {
     let selection = event.selection,
       brushedSet = selection ? new Set(
         this.data
-          .embedding
           .filter((d) => this.isBrushed(d, selection))
           .map((d) => d.idx)
       ) : new Set();
@@ -214,32 +212,6 @@ class Scatterplot {
     this.circles
       .classed("brushed", (d) => this.brushedSet.has(d["idx"]))
       .attr("opacity", 0.8);
-  }
-
-  request(i=0) {
-    let url;
-    if(this.method == "t-SNE"){
-      url = `http://127.0.0.1:50001/tsne?` +
-            `i=${i}`+
-            `&title=${this.params.title}` +
-            `&init=${this.params.init}` +
-            `&perp=${this.params.perp}` +
-            `&iter=${this.params.iter}` +
-            `&lr=${this.params.lr}`
-    }
-    else{
-      url = `http://127.0.0.1:50001/umap?` +
-            `i=${i}`+
-            `&title=${this.params.title}` +
-            `&nNeighbors=${this.params.nNeighbors}` +
-            `&minDist=${this.params.minDist}`
-    }
-    return d3
-      .json(url)
-      .then((data) => {
-        this.update(data);
-        this.highlightBrushed();
-      });
   }
 
   drawFS(data){

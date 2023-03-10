@@ -30,7 +30,6 @@ def ensemble_DR():
                 ...
             ]
         }
-    
     """
     with open('./static/result/result.json') as f:
         result = json.load(f)

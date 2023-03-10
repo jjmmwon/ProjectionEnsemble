@@ -6,11 +6,12 @@ import { Scatterplot } from "./elements/Scatterplot.mjs";
 let embeddingView = {
   scatterplots: [],
   brushedSet: new Set(),
-  add(method, params) {
+  add(id, method, params, embedding) {
     let sc = new Scatterplot(
+      id,
       ".scatterplot-section",
-      300,
-      300,
+      290,
+      290,
       method,
       params,
       this.brushedSet
@@ -25,6 +26,8 @@ let embeddingView = {
           if(sc !== sc2) sc2.hideBrush();
         });
       })
+      .update(embedding);
+      
     this.scatterplots.push(sc);
 
     sc.delBtn.on("click", () => {
