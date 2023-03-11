@@ -1,20 +1,33 @@
 import json
+from typing import Union
 
+import numpy as np
 import pandas as pd
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from ensemble_dr import (
+    DRResult,
     EnsembleDR,
-    UMAPWrapper,
-    preset_methods,
-    UMAPHParams,
+    EnsembleDRResult,
+    Point,
     TSNEHParams,
     TSNEHParamsBody,
+    UMAPHParams,
     UMAPHParamsBody,
+    UMAPWrapper,
+    TSNEWrapper,
+    preset_methods,
+    PresetMethodNames,
 )
 
-from typing import Union
+
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+
 
 demo_files = {
     "breast_cancer": "diagnosis",
@@ -35,17 +48,35 @@ async def v1_preset(title: str, method: str):
 
 
 @app.get("/v2/preset")
-async def v2_preset(title: str, method: str):
+async def v2_preset(title: str, method: PresetMethodNames):
     df = pd.read_csv(f"./data/{title}.csv")
     values = df.drop([demo_files[title]], axis=1)
     target = df[demo_files[title]]
     ensemble_dr = EnsembleDR(values, target)
 
-    methods = preset_methods["umap10"]
-    umaps = [UMAPWrapper(values.values, hparams) for hparams in methods]  # type: ignore
-    result = ensemble_dr.fit(umaps)
+    methods = preset_methods[method]
+    drs = []
+    if "tsne" in method:
+        drs.extend([TSNEWrapper(values.values, hparams) for hparams in preset_methods[method]])  # type: ignore
+    elif "umap" in method:
+        drs.extend([UMAPWrapper(values.values, hparams) for hparams in preset_methods[method]])  # type: ignore
 
-    return result.to_json()
+    dr_results = [
+        DRResult(
+            [
+                Point(i, x=float(row[0]), y=float(row[1]), label=target[i])
+                for i, row in enumerate(drs[j])
+            ],
+            methods[j],
+        )
+        for j in range(len(drs))
+    ]
+    fsm_result = ensemble_dr.fit(drs)
+    result = EnsembleDRResult(dr_results, fsm_result)
+    with open(f"./data/{title}/{method}.json", "w") as f:
+        json.dump(result.__dict__(), f, indent=2, cls=NumpyEncoder)
+
+    return result.__dict__()
 
 
 @app.post("/v1/dr")

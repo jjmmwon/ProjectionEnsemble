@@ -6,7 +6,8 @@ import pandas as pd
 from scipy.spatial import procrustes as _procrustes
 from sklearn.preprocessing import StandardScaler
 
-from .graph_util import generate_graphs, get_frequent_subgraphs
+from .graph_util import generate_graphs, get_fsm_results
+from .models import Point, FSMResult
 
 EmbeddingKey = Literal["0", "1", "c"]
 
@@ -35,31 +36,21 @@ class EnsembleDR:
     def __init__(self, df: pd.DataFrame, target: pd.Series) -> None:
         df = df.dropna()
 
-        if (not isinstance(df, pd.DataFrame) or not isinstance(target, pd.Series)) or (
-            len(df) != len(target)
+        if (
+            not isinstance(df, pd.DataFrame)
+            or not isinstance(target, pd.Series)
+            or "object" in df.dtypes.values
+            or (len(df) != len(target))
         ):
             raise ValueError("Invalid input")
-
-        for k, v in dict(df.dtypes).items():
-            if v == "object":
-                raise ValueError("All columns must be numeric")
 
         self.values = df.values
         self.target = target
 
-    def fit(self, embeddings: List[np.ndarray]) -> Result:
-        embeddings = [
+    def fit(self, embeddings: List[np.ndarray]) -> List[FSMResult]:
+        embeddings = [embeddings[0]] + [
             procrustes(embedding, embeddings[0]) for embedding in embeddings[1:]
         ]
+        graph_dicts = generate_graphs(embeddings)
 
-        result: List[List[Dict[EmbeddingKey, Union[float, int, str]]]] = [
-            [
-                {"0": row[0], "1": row[1], "c": self.target[i]}
-                for i, row in enumerate(embedding)
-            ]
-            for embedding in embeddings
-        ]
-        graph_dict = generate_graphs(embeddings)
-        frequent_subgraphs = get_frequent_subgraphs(graph_dict)
-
-        return Result(embeddings=result, frequent_subgraphs=frequent_subgraphs)
+        return get_fsm_results(graph_dicts, embeddings)

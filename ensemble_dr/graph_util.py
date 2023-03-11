@@ -1,9 +1,14 @@
+from dataclasses import dataclass
 from itertools import combinations
-from typing import Dict, List
-from .presets import preset_k, preset_min_support
+from typing import Dict, List, Tuple, Union
 
 import networkx as nx
 import numpy as np
+from shapely import concave_hull
+from shapely.geometry import LinearRing, MultiPoint, Polygon
+
+from .models import FSMResult
+from .presets import preset_k, preset_min_support
 
 
 def get_distance_matrices(embeddings: List[np.ndarray]) -> List[np.ndarray]:
@@ -47,7 +52,29 @@ def generate_graphs(embeddings: List[np.ndarray]) -> Dict[int, List[nx.Graph]]:
     return k_graphs
 
 
-def get_frequent_subgraph(graphs: List[nx.Graph], min_support: int) -> List[List[int]]:
+def get_concave_hull(
+    embedding: np.ndarray, indices: List[int]
+) -> List[Tuple[float, float]]:
+    """
+    embedding: np.ndarray shape (N, 2)
+    indices: List[int]
+    """
+    if len(indices) == 1:
+        return []
+
+    return list(
+        [
+            (float(c[0]), float(c[1]))
+            for c in concave_hull(
+                MultiPoint(
+                    [(float(embedding[i][0]), float(embedding[i][1])) for i in indices]
+                )
+            ).exterior.coords
+        ]
+    )
+
+
+def get_frequent_subgraphs(graphs: List[nx.Graph], min_support: int) -> List[List[int]]:
     union_graph = nx.Graph()
     for graph in graphs:
         union_graph = nx.compose(union_graph, graph)
@@ -66,11 +93,20 @@ def get_frequent_subgraph(graphs: List[nx.Graph], min_support: int) -> List[List
     return [list(c) for c in nx.connected_components(union_graph)]
 
 
-def get_frequent_subgraphs(
-    graphs: Dict[int, List[nx.Graph]]
-) -> Dict[str, List[List[int]]]:
-    return {
-        f"{k}_{ms}": get_frequent_subgraph(graphs[k], ms)
-        for k in preset_k
-        for ms in preset_min_support
-    }
+def get_fsm_results(
+    graphs: Dict[int, List[nx.Graph]], embeddings: List[np.ndarray]
+) -> List[FSMResult]:
+    result = []
+    for k in preset_k:
+        for ms in preset_min_support:
+            subgraphs = get_frequent_subgraphs(graphs[k], ms)
+            contour_coords = [
+                [
+                    get_concave_hull(embeddings[i], subgraphs[j])
+                    for j in range(len(subgraphs))
+                ]
+                for i in range(len(embeddings))
+            ]
+            result.append(FSMResult(k, ms, subgraphs, contour_coords))
+
+    return result

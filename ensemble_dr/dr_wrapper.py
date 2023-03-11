@@ -1,10 +1,11 @@
 import numpy as np
 import umap
+
 # from fast_tsne import fast_tsne
 from sklearn.manifold import TSNE
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
-from .hparams import TSNEHParams, UMAPHParams
+from .models import TSNEHParams, UMAPHParams
 
 FAST_TSNE_PATH = "/home/myeongwon/mw_dir/FS_TSNE/src/fitsne"
 
