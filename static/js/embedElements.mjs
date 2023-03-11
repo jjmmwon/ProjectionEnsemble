@@ -9,7 +9,7 @@ async function ensembleDR() {
     title = d3.select('#dataTitle').property('value');
     method = d3.select('#method').property('value');
     await d3
-        .json(`/ensembleDR?title=${title}&method=${method}`)
+        .json(`/v2/preset?title=${title}&method=${method}`)
         .then((response) => {
             console.log(response);
             data = response;

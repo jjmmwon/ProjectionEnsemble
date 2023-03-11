@@ -6,8 +6,7 @@ import pandas as pd
 from scipy.spatial import procrustes as _procrustes
 from sklearn.preprocessing import StandardScaler
 
-from .fsm import FSM
-from .graph_generator import generate_graphs
+from .graph_util import generate_graphs, get_frequent_subgraphs
 
 EmbeddingKey = Literal["0", "1", "c"]
 
@@ -61,6 +60,6 @@ class EnsembleDR:
             for embedding in embeddings
         ]
         graph_dict = generate_graphs(embeddings)
-        frequent_subgraphs = FSM(graph_dict=graph_dict).run()
+        frequent_subgraphs = get_frequent_subgraphs(graph_dict)
 
         return Result(embeddings=result, frequent_subgraphs=frequent_subgraphs)

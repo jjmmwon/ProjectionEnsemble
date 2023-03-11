@@ -1,15 +1,22 @@
 import json
-import uuid
 
+import pandas as pd
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from ensembledr import EnsembleDR, UMAPWrapper, preset_methods
+from ensemble_dr import (
+    EnsembleDR,
+    UMAPWrapper,
+    preset_methods,
+    UMAPHParams,
+    TSNEHParams,
+    TSNEHParamsBody,
+    UMAPHParamsBody,
+)
 
-uid = uuid.uuid4().hex[:8]
-class_list = {
+from typing import Union
+
+demo_files = {
     "breast_cancer": "diagnosis",
     "milknew": "Grade",
     "mobile_price": "price_range",
@@ -20,19 +27,35 @@ class_list = {
 app = FastAPI()
 
 
-@app.get("/ensembleDR")
-async def demo(title: str, method: str):
-    with open("./static/result/result.json") as f:
+@app.get("/v1/preset")
+async def v1_preset(title: str, method: str):
+    with open(f"./data/{title}_result.json") as f:
         result = json.load(f)
-
-    # ensemble_dr = EnsembleDR(df.drop(["diagnosis"], axis=1), df["diagnosis"])
-    # data = ensemble_dr.values
-
-    # methods = preset_methods["umap10"]
-    # umaps = [UMAPWrapper(data, hparams) for hparams in methods]  # type: ignore
-    # ensemble_dr.fit(umaps)
-
     return result
+
+
+@app.get("/v2/preset")
+async def v2_preset(title: str, method: str):
+    df = pd.read_csv(f"./data/{title}.csv")
+    values = df.drop([demo_files[title]], axis=1)
+    target = df[demo_files[title]]
+    ensemble_dr = EnsembleDR(values, target)
+
+    methods = preset_methods["umap10"]
+    umaps = [UMAPWrapper(values.values, hparams) for hparams in methods]  # type: ignore
+    result = ensemble_dr.fit(umaps)
+
+    return result.to_json()
+
+
+@app.post("/v1/dr")
+async def v1_dr(title: str, method: str, body: Union[TSNEHParamsBody, UMAPHParamsBody]):
+    pass
+
+
+@app.post("/v2/dr")
+async def v2_dr(title: str, method: str, body: Union[TSNEHParamsBody, UMAPHParamsBody]):
+    pass
 
 
 app.mount("/", StaticFiles(directory="static", html=True), name="static")

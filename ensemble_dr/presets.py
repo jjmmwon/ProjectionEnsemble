@@ -1,18 +1,9 @@
-from dataclasses import dataclass
-from typing import Literal, Union, List, Dict
+from typing import Dict, List, Literal, Union
 
+from .hparams import TSNEHParams, UMAPHParams
 
-@dataclass
-class TSNEHParams:
-    initialization: Literal["random", "pca"]
-    perplexity: int
-    learning_rate: Union[int, Literal["auto"]]
-
-
-@dataclass
-class UMAPHParams:
-    n_neighbors: int
-    min_dist: float
+preset_k = [5, 7, 10, 15, 20]
+preset_min_support = [6, 7, 8, 9, 10]
 
 
 preset_params = {
