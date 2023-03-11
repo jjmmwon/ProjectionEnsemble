@@ -41,8 +41,8 @@ app = FastAPI()
 
 
 @app.get("/v1/preset")
-async def v1_preset(title: str, method: str):
-    with open(f"./data/{title}_result.json") as f:
+async def v1_preset(title: str, method: PresetMethodNames):
+    with open(f"./data/{title}/{method}.json") as f:
         result = json.load(f)
     return result
 
