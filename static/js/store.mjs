@@ -5,14 +5,14 @@ import { Scatterplot } from './elements/Scatterplot.mjs';
 let embeddingView = {
     scatterplots: [],
     brushedSet: new Set(),
-    add(id, method, params, embedding) {
+    add(id, method, hyperparams, embedding) {
         let sc = new Scatterplot(
             id,
             '.scatterplot-section',
             290,
             290,
             method,
-            params,
+            hyperparams,
             this.brushedSet
         );
 
@@ -29,19 +29,12 @@ let embeddingView = {
 
         this.scatterplots.push(sc);
 
-        sc.delBtn.on('click', () => {
-            sc.div.remove();
-            this.scatterplots.forEach((d, i) =>
-                d == sc ? this.scatterplots.splice(i, 1) : null
-            );
-        });
-
         return sc;
     },
 
     update(fsm) {
         this.scatterplots.forEach((sc) => {
-            sc.drawFS(fsm);
+            sc.drawContour(fsm);
         });
     },
 
@@ -51,10 +44,10 @@ let embeddingView = {
 };
 
 let fsView = {
-    sankey: new Sankey('.fsView', 280, 300),
+    sankey: new Sankey('.fsView', 270, 350),
 
-    update(data, k, ms) {
-        this.sankey.initialize().update(data, k, ms);
+    update(data) {
+        this.sankey.initialize().update(data);
     },
 
     reset() {

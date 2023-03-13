@@ -6,11 +6,23 @@ class Sankey {
         this.margin = { top: 10, right: 10, bottom: 10, left: 10 };
         this.width = width - this.margin.left - this.margin.right;
         this.height = height - this.margin.top - this.margin.bottom;
+        this.k = 5;
+        this.ms = 6;
     }
 
     initialize() {
         this.div = d3.select(this.div).append('div');
-        this.drawHeader();
+
+        // Draw Header
+        this.header = this.div
+            .append('div')
+            .attr('class', 'd-flex justify-content-center');
+        this.kSpan = this.header
+            .append('span')
+            .attr('class', 'badge rounded-pill bg-warning text-dark mx-2');
+        this.msSpan = this.header
+            .append('span')
+            .attr('class', 'badge rounded-pill bg-warning text-dark mx-2');
 
         this.svg = this.div
             .append('svg')
@@ -27,44 +39,34 @@ class Sankey {
         return this;
     }
 
-    drawHeader() {
-        this.header = this.div
-            .append('div')
-            .attr('class', 'd-flex justify-content-center');
-        this.kSpan = this.header
-            .append('span')
-            .attr('class', 'badge rounded-pill bg-warning text-dark mx-2');
-        this.msSpan = this.header
-            .append('span')
-            .attr('class', 'badge rounded-pill bg-warning text-dark mx-2');
-    }
-
-    update(data, k = 5, ms = 6) {
-        this.k = k;
-        this.ms = ms;
-
+    update(data) {
         this.data = data;
-        this.data.FSM.forEach((d) => {
+        this.fsmResult = this.data.fsm_results;
+        this.labelInfo = this.data.dr_results[0].embedding.map((d) => d.label);
+        console.log(this.labelInfo);
+
+        this.fsmResult.forEach((d) => {
             if (d.k == this.k && d.min_support == this.ms) {
-                this.FS = d.FS;
+                this.subgraphs = d.subgraphs;
             }
         });
 
         this.makeGraph();
-        this.classColorScale = d3.scaleOrdinal([], d3.schemeCategory10);
+        this.labelColorScale = d3.scaleOrdinal([], d3.schemeCategory10);
         this.fsColorScale = d3.scaleOrdinal([], d3.schemeTableau10);
 
         let nodes = this.graph.nodes,
             links = this.graph.links;
+
         const N = d3.map(nodes, (d) => d.id);
 
         d3
             .sankey()
             .nodeId((_, i) => N[i])
             .nodeAlign(d3.sankeyJustify)
-            // .nodeSort(null)
+            .nodeSort(null)
             .nodeWidth(15)
-            .nodePadding(25)
+            .nodePadding(15)
             .extent([
                 [0, 0],
                 [this.width, this.height],
@@ -79,8 +81,8 @@ class Sankey {
             .data(nodes)
             .join('rect')
             .style('fill', (d) => {
-                return d.id < this.classLength
-                    ? this.classColorScale(d.id)
+                return d.id < this.labelLength
+                    ? this.labelColorScale(d.id)
                     : 'gray';
             })
             .attr('x', (d) => d.x0)
@@ -110,46 +112,55 @@ class Sankey {
             links: [],
         };
 
-        this.graph.nodes = [...new Set(this.data.class)];
-        this.classLength = this.graph.nodes.length;
+        this.graph.nodes = [...new Set(this.labelInfo)];
+        this.labelLength = this.graph.nodes.length;
         this.graph.nodes =
             this.graph.nodes.length !== 1
                 ? this.graph.nodes.sort((a, b) => {
                       return (
-                          this.data.class.filter((c) => c == b).length -
-                          this.data.class.filter((c) => c == a).length
+                          this.labelInfo.filter((c) => c == b).length -
+                          this.labelInfo.filter((c) => c == a).length
                       );
                   })
                 : this.graph.nodes;
 
-        Object.keys(this.FS).forEach((fs) => {
-            this.graph.nodes.push(fs);
+        let outliers = [...new Array(this.labelInfo.length)].map((_, i) => i);
+
+        this.subgraphs.forEach((fs, i) => {
+            this.graph.nodes.push('FS' + i);
+            outliers = outliers.filter((o) => !fs.includes(o));
 
             let target = [
-                ...new Set(this.FS[fs].map((i) => this.data.class[i])),
+                ...new Set(this.subgraphs[i].map((j) => this.labelInfo[j])),
             ];
 
             target.forEach((t) => {
                 this.graph.links.push({
-                    source: this.graph.nodes.indexOf(fs),
+                    source: this.graph.nodes.indexOf('FS' + i),
                     target: this.graph.nodes.indexOf(t),
-                    value: this.FS[fs]
-                        .map((i) => this.data.class[i])
+                    value: this.subgraphs[i]
+                        .map((j) => this.labelInfo[j])
                         .filter((c) => c == t).length,
                 });
             });
         });
 
-        this.graph.nodes.forEach((d, i) => {
+        this.graph.nodes.push('Outliers');
+        let target = [...new Set(outliers.map((i) => this.labelInfo[i]))];
+        target.forEach((t) => {
+            this.graph.links.push({
+                source: this.graph.nodes.indexOf('Outliers'),
+                target: this.graph.nodes.indexOf(t),
+                value: outliers
+                    .map((i) => this.labelInfo[i])
+                    .filter((c) => c == t).length,
+            });
+        });
+
+        this.graph.nodes.forEach((_, i) => {
             this.graph.nodes[i] = {
                 id: i,
             };
         });
-    }
-
-    intern(value) {
-        return value !== null && typeof value === 'object'
-            ? value.valueOf()
-            : value;
     }
 }

@@ -17,6 +17,7 @@ from ensemble_dr import (
     UMAPHParamsBody,
     UMAPWrapper,
     TSNEWrapper,
+    FastTSNEWrapper,
     preset_methods,
     PresetMethodNames,
 )
@@ -57,14 +58,14 @@ async def v2_preset(title: str, method: PresetMethodNames):
     methods = preset_methods[method]
     drs = []
     if "tsne" in method:
-        drs.extend([TSNEWrapper(values.values, hparams) for hparams in preset_methods[method]])  # type: ignore
+        drs.extend([FastTSNEWrapper(values.values, hparams) for hparams in preset_methods[method]])  # type: ignore
     elif "umap" in method:
         drs.extend([UMAPWrapper(values.values, hparams) for hparams in preset_methods[method]])  # type: ignore
 
     dr_results = [
         DRResult(
             [
-                Point(i, x=float(row[0]), y=float(row[1]), label=target[i])
+                Point(i, x=float(row[0]), y=float(row[1]), label=str(target[i]))
                 for i, row in enumerate(drs[j])
             ],
             methods[j],
@@ -74,7 +75,7 @@ async def v2_preset(title: str, method: PresetMethodNames):
     fsm_result = ensemble_dr.fit(drs)
     result = EnsembleDRResult(dr_results, fsm_result)
     with open(f"./data/{title}/{method}.json", "w") as f:
-        json.dump(result.__dict__(), f, indent=2, cls=NumpyEncoder)
+        json.dump(result.__dict__(), f, cls=NumpyEncoder)
 
     return result.__dict__()
 
