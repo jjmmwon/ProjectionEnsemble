@@ -2,7 +2,7 @@ from typing import Dict, List, Literal, Union
 
 from .models import TSNEHParams, UMAPHParams
 
-preset_k = [5, 7, 10, 15, 20]
+preset_k = [3, 4, 5, 7, 10]
 preset_min_support = [6, 7, 8, 9, 10]
 
 

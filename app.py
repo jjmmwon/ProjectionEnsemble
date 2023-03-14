@@ -18,6 +18,7 @@ from ensemble_dr import (
     UMAPWrapper,
     TSNEWrapper,
     FastTSNEWrapper,
+    procrustes,
     preset_methods,
     PresetMethodNames,
 )
@@ -61,7 +62,9 @@ async def v2_preset(title: str, method: PresetMethodNames):
         drs.extend([FastTSNEWrapper(values.values, hparams) for hparams in preset_methods[method]])  # type: ignore
     elif "umap" in method:
         drs.extend([UMAPWrapper(values.values, hparams) for hparams in preset_methods[method]])  # type: ignore
-
+    
+    drs = [drs[0]] + [procrustes(drs[0], dr) for dr in drs[1:]]
+    
     dr_results = [
         DRResult(
             [

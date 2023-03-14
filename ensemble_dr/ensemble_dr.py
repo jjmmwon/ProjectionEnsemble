@@ -48,9 +48,6 @@ class EnsembleDR:
         self.target = target
 
     def fit(self, embeddings: List[np.ndarray]) -> List[FSMResult]:
-        embeddings = [embeddings[0]] + [
-            procrustes(embedding, embeddings[0]) for embedding in embeddings[1:]
-        ]
         graph_dicts = generate_graphs(embeddings)
 
         return get_fsm_results(graph_dicts, embeddings)
