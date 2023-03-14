@@ -39,10 +39,9 @@ body {
 }
 .fsView-section {
     height: 400px;
-    overflow: auto;
 }
 
-i {
+.heatmap-cell {
     cursor: pointer;
 }
 

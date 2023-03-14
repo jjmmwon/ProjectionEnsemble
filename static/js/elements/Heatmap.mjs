@@ -1,23 +1,23 @@
 export { Heatmap };
 
 class Heatmap {
-    constructor(div, width = 300, height = 300) {
-        this.div = div;
+    constructor(id, width = 300, height = 300) {
+        this.id = id;
         this.width = width;
         this.height = height;
         this.margin = {
-            top: 20,
+            top: 40,
             right: 20,
             bottom: 20,
             left: 20,
         };
-        this.k = [5, 7, 10, 15, 20];
+        this.k = [3, 4, 5, 7, 10];
         this.minSupport = [6, 7, 8, 9, 10];
         this.handlers = {};
     }
 
     initialize() {
-        this.div = d3.select(this.div).append('div');
+        this.div = d3.select(this.id).append('div');
         this.svg = this.div.append('svg');
         this.container = this.svg.append('g');
         this.xAxis = this.svg.append('g');
@@ -42,10 +42,7 @@ class Heatmap {
             .range([0, this.height - this.margin.top - this.margin.bottom])
             .padding(0.01);
 
-        this.colorScale = d3
-            .scaleLinear()
-            .range(['white', '#69b3a2'])
-            .domain([1, 200]);
+        this.colorScale = d3.scaleLinear().domain([1, 100]).range([0, 1]);
 
         this.xAxis
             .attr(
@@ -67,17 +64,36 @@ class Heatmap {
         return this;
     }
 
-    update(fsm) {
+    update(fsmResult) {
         this.container
             .selectAll('rect')
-            .data(fsm)
+            .data(fsmResult)
             .join('rect')
+            .attr('class', 'heatmap-cell')
             .attr('x', (d) => this.xScale(d['min_support']))
             .attr('y', (d) => this.yScale(d['k']))
             .attr('width', this.xScale.bandwidth())
             .attr('height', this.yScale.bandwidth())
-            .style('fill', (d) => this.colorScale(d['FS'].length))
+            .style('fill', (d) =>
+                d3.interpolateYlGn(this.colorScale(d.subgraphs.length))
+            )
             .on('click', (event) => this.clickCell(event));
+
+        this.container
+            .selectAll('text')
+            .data(fsmResult)
+            .join('text')
+            .attr(
+                'x',
+                (d) =>
+                    this.xScale(d['min_support']) + this.xScale.bandwidth() / 2
+            )
+            .attr('y', (d) => this.yScale(d['k']) + this.yScale.bandwidth() / 2)
+            .style('text-anchor', 'middle')
+            .style('alignment-baseline', 'middle')
+            .style('font-size', '10px')
+            .style('fill', 'black')
+            .text((d) => d.subgraphs.length);
 
         return this;
     }
@@ -88,20 +104,26 @@ class Heatmap {
 
     clickCell(event) {
         let [x, y] = d3.pointer(event);
-        let xVal = this.minSupport[4],
-            yVal = this.k[4];
-
-        this.msBand.forEach((d, i) => {
-            if (xVal == this.minSupport[4])
-                xVal = x < d ? this.minSupport[i - 1] : xVal;
-        });
-
-        this.kBand.forEach((d, i) => {
-            if (yVal == this.k[4]) yVal = y < d ? this.k[i - 1] : yVal;
-        });
 
         if (this.handlers?.click) {
-            this.handlers.click(yVal, xVal);
+            this.handlers.click(this.invertX(x), this.invertY(y));
         }
+    }
+
+    invertX(x) {
+        let xVal = this.minSupport[this.minSupport.length - 1];
+        this.msBand.forEach((d, i) => {
+            if (xVal == this.minSupport[this.minSupport.length - 1])
+                xVal = x < d ? this.minSupport[i - 1] : xVal;
+        });
+        return xVal;
+    }
+    invertY(y) {
+        let yVal = this.k[this.k.length - 1];
+        this.kBand.forEach((d, i) => {
+            if (yVal == this.k[this.k.length - 1])
+                yVal = y < d ? this.k[i - 1] : yVal;
+        });
+        return yVal;
     }
 }

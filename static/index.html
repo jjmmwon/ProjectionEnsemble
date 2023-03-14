@@ -21,6 +21,7 @@
         <script src="https://unpkg.com/d3-path@1"></script>
         <script src="https://unpkg.com/d3-shape@1"></script>
         <script src="https://unpkg.com/d3-sankey@0"></script>
+        <script src="https://cdn.jsdelivr.net/npm/d3-path@3"></script>
         <script src="https://cdn.jsdelivr.net/npm/d3-array@3"></script>
 
         <link rel="stylesheet" href="./css/index.css" />
@@ -63,8 +64,11 @@
                                         >
                                             <option
                                                 selected
-                                                value="breast_cancer"
+                                                value="fashion-mnist"
                                             >
+                                                Fashion-MNIST(5000)
+                                            </option>
+                                            <option value="breast_cancer">
                                                 Breast Cancer(569)
                                             </option>
                                             <option value="milknew">
@@ -72,9 +76,6 @@
                                             </option>
                                             <option value="mobile_price">
                                                 Mobile Price(2000)
-                                            </option>
-                                            <option value="fashion-mnist">
-                                                Fashion-MNIST(5000)
                                             </option>
                                             <option value="diabetes">
                                                 Diabetes(15000)
@@ -96,10 +97,10 @@
                                                 width: 100px;
                                             "
                                         >
-                                            <option selected value="umap10">
+                                            <option value="umap10">
                                                 UMAP(10)
                                             </option>
-                                            <option value="tsne10">
+                                            <option selected value="tsne10">
                                                 t-SNE(10)
                                             </option>
                                             <option value="tsne20">
@@ -200,13 +201,13 @@
                         <div class="ensembleDR-section"></div>
                         <div class="fsView-section bg-white mb-2 px-3 py-2">
                             <div class="fw-bold">Frequent Subset View</div>
-                            <div class="fsView"></div>
+                            <div id="fsView"></div>
                         </div>
                         <div
                             class="heatmap-section bg-white px-3 py-2 flex-fill"
                         >
-                            <div class="fw-bold">Heatmap</div>
-                            <div class="heatmap"></div>
+                            <div class="fw-bold">Heatmap View</div>
+                            <div id="heatmap"></div>
                         </div>
                     </div>
                 </div>

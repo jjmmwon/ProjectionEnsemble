@@ -1,17 +1,16 @@
 export { Sankey };
 
 class Sankey {
-    constructor(div, width, height) {
-        this.div = div;
+    constructor(id, width, height) {
+        this.id = id;
         this.margin = { top: 10, right: 10, bottom: 10, left: 10 };
         this.width = width - this.margin.left - this.margin.right;
         this.height = height - this.margin.top - this.margin.bottom;
-        this.k = 5;
-        this.ms = 6;
     }
 
-    initialize() {
-        this.div = d3.select(this.div).append('div');
+    initialize(data) {
+        this.data = data;
+        this.div = d3.select(this.id).append('div');
 
         // Draw Header
         this.header = this.div
@@ -36,24 +35,25 @@ class Sankey {
                 `translate(${this.margin.left},${this.margin.top})`
             );
 
+        this.labelColorScale = d3.scaleOrdinal([], d3.schemeCategory10);
+        this.fsColorScale = d3.scaleOrdinal([], d3.schemeTableau10);
+
         return this;
     }
 
-    update(data) {
-        this.data = data;
+    update(k = 5, min_support = 8) {
+        this.k = k;
+        this.min_support = min_support;
         this.fsmResult = this.data.fsm_results;
         this.labelInfo = this.data.dr_results[0].embedding.map((d) => d.label);
-        console.log(this.labelInfo);
 
         this.fsmResult.forEach((d) => {
-            if (d.k == this.k && d.min_support == this.ms) {
+            if (d.k == this.k && d.min_support == this.min_support) {
                 this.subgraphs = d.subgraphs;
             }
         });
 
         this.makeGraph();
-        this.labelColorScale = d3.scaleOrdinal([], d3.schemeCategory10);
-        this.fsColorScale = d3.scaleOrdinal([], d3.schemeTableau10);
 
         let nodes = this.graph.nodes,
             links = this.graph.links;
@@ -66,7 +66,7 @@ class Sankey {
             .nodeAlign(d3.sankeyJustify)
             .nodeSort(null)
             .nodeWidth(15)
-            .nodePadding(15)
+            .nodePadding(5)
             .extent([
                 [0, 0],
                 [this.width, this.height],
@@ -75,8 +75,11 @@ class Sankey {
             links,
         });
 
-        this.node = this.container
-            .append('g')
+        this.container.selectAll('g').remove();
+        this.node = this.container.append('g');
+        this.link = this.container.append('g');
+
+        this.node
             .selectAll('rect')
             .data(nodes)
             .join('rect')
@@ -90,8 +93,7 @@ class Sankey {
             .attr('height', (d) => d.y1 - d.y0)
             .attr('width', (d) => d.x1 - d.x0);
 
-        this.link = this.container
-            .append('g')
+        this.link
             .selectAll('.link')
             .data(links)
             .join('g')
@@ -102,8 +104,6 @@ class Sankey {
             .attr('stroke', '#000')
             .attr('stroke-width', ({ width }) => Math.max(2, width))
             .sort((a, b) => b.dy - a.dy);
-        // const chart = sankeyChart({links: this.graph.links});
-        // this.div.append(()=>chart);
     }
 
     makeGraph() {

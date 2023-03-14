@@ -5,7 +5,7 @@ import { Scatterplot } from './elements/Scatterplot.mjs';
 let embeddingView = {
     scatterplots: [],
     brushedSet: new Set(),
-    add(id, method, hyperparams, embedding) {
+    add(id, method, hyperparams, embedding, fsmResult) {
         let sc = new Scatterplot(
             id,
             '.scatterplot-section',
@@ -25,16 +25,17 @@ let embeddingView = {
                     if (sc !== sc2) sc2.hideBrush();
                 });
             })
-            .update(embedding);
+            .update(embedding, fsmResult)
+            .drawContour(5, 8);
 
         this.scatterplots.push(sc);
 
         return sc;
     },
 
-    update(fsm) {
+    updateContour(k = 5, min_support = 8) {
         this.scatterplots.forEach((sc) => {
-            sc.drawContour(fsm);
+            sc.drawContour(k, min_support);
         });
     },
 
@@ -44,10 +45,13 @@ let embeddingView = {
 };
 
 let fsView = {
-    sankey: new Sankey('.fsView', 270, 350),
+    sankey: new Sankey('#fsView', 270, 350),
 
-    update(data) {
-        this.sankey.initialize().update(data);
+    add(data) {
+        this.sankey.initialize(data).update();
+    },
+    update(k, ms) {
+        this.sankey.update(k, ms);
     },
 
     reset() {
@@ -55,14 +59,17 @@ let fsView = {
     },
 };
 
-let heatmap = {
-    heatmap: new Heatmap('.heatmap', 250, 250),
+let heatmapView = {
+    heatmap: new Heatmap('#heatmap', 250, 250),
 
-    update(fsm) {
+    add(fsmResult) {
         this.heatmap
             .initialize()
-            .update(fsm)
-            .on('click', (k, ms) => {});
+            .update(fsmResult)
+            .on('click', (ms, k) => {
+                embeddingView.updateContour(k, ms);
+                fsView.update(k, ms);
+            });
     },
 
     reset() {
@@ -70,4 +77,4 @@ let heatmap = {
     },
 };
 
-export { embeddingView, fsView, heatmap };
+export { embeddingView, fsView, heatmapView };

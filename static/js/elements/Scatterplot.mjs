@@ -1,6 +1,6 @@
 export { Scatterplot };
 class Scatterplot {
-    constructor(id, div, width, height, method, hyperparams, brushedSet) {
+    constructor(id, div, width, height, method, hyperparameters, brushedSet) {
         this.id = id;
         this.div = d3.select(div).append('div');
         this.margin = {
@@ -12,7 +12,7 @@ class Scatterplot {
         this.width = width - this.margin.left - this.margin.right;
         this.height = height - this.margin.top - this.margin.bottom;
         this.method = method.substr(0, 4) == 'tsne' ? 't-SNE' : 'UMAP';
-        this.hyperparams = hyperparams;
+        this.hyperparameters = hyperparameters;
         this.brushedSet = brushedSet;
         this.handlers = {};
     }
@@ -43,17 +43,24 @@ class Scatterplot {
             'dark',
             'light',
         ];
+        this.hparams = {
+            perplexity: 'perp',
+            initialization: 'init',
+            learning_rate: 'lr',
+            n_neighbors: 'n_neighbors',
+            min_dist: 'min_dist',
+        };
 
         this.hpramDiv
             .selectAll('span')
-            .data(d3.keys(this.hyperparams))
+            .data(d3.keys(this.hyperparameters))
             .join('span')
             .attr(
                 'class',
                 (_, i) =>
                     `badge rounded-pill bg-${this.badgeColor[i]} text-light`
             )
-            .text((d) => `${d}: ${this.hyperparams[d]}`);
+            .text((d) => `${this.hparams[d]}: ${this.hyperparameters[d]}`);
 
         this.svg = this.div.append('svg');
         this.container = this.svg.append('g');
@@ -84,13 +91,14 @@ class Scatterplot {
     }
 
     //update event
-    update(data) {
-        this.data = data;
+    update(embedding, fsmResult = null) {
+        this.embedding = embedding;
+        this.fsmResult = fsmResult;
 
-        let pMax = this.data[0]['x'],
-            pMin = this.data[0]['x'];
+        let pMax = this.embedding[0]['x'],
+            pMin = this.embedding[0]['x'];
 
-        this.data.forEach((d) => {
+        this.embedding.forEach((d) => {
             pMax = pMax < d.x ? d.x : pMax;
             pMin = pMin > d.x ? d.x : pMin;
             pMax = pMax < d.y ? d.y : pMax;
@@ -108,9 +116,9 @@ class Scatterplot {
             .domain([pMin * 1.2, pMax * 1.2])
             .range([this.height, 0]);
 
-        this.classColorScale = d3
+        this.labelColorScale = d3
             .scaleOrdinal()
-            .domain([...new Set(this.data.map((d) => d.label))])
+            .domain([...new Set(this.embedding.map((d) => d.label))])
             .range(d3.schemeCategory10);
 
         this.frqSubgColorScale = d3
@@ -121,7 +129,7 @@ class Scatterplot {
         // append points
         this.circles = this.container
             .selectAll('circle')
-            .data(this.data)
+            .data(this.embedding)
             .join('circle');
 
         this.circles
@@ -134,7 +142,7 @@ class Scatterplot {
                     ')'
                 );
             })
-            .attr('fill', (d) => this.classColorScale(d.label))
+            .attr('fill', (d) => this.labelColorScale(d.label))
             .attr('opacity', 0.4)
             .attr('r', 2.3);
 
@@ -179,7 +187,7 @@ class Scatterplot {
         let selection = event.selection,
             brushedSet = selection
                 ? new Set(
-                      this.data
+                      this.embedding
                           .filter((d) => this.isBrushed(d, selection))
                           .map((d) => d.id)
                   )
@@ -201,21 +209,23 @@ class Scatterplot {
             .attr('opacity', 0.8);
     }
 
-    drawContour(data) {
-        data.FSM.forEach((d) => {
-            if (d.k == 5 && d.min_support == 8) {
-                this.FS = d.FS;
-            }
+    drawContour(k, min_support) {
+        let contourData;
+        this.fsmResult.forEach((fs) => {
+            if (fs.min_support == min_support && fs.k == k)
+                contourData = fs.contour_coords[this.id];
         });
+        console.log(contourData);
+        const line = d3
+            .line()
+            .x((d) => this.xScale(d[0]))
+            .y((d) => this.yScale(d[1]));
 
-        Object.keys(this.FS).forEach((key, i) => {
-            if (key == 'outliers') return false;
-            if (i > 10) return false;
-            this.circles
-                .filter((d) => this.FS[key].includes(Number(d.id)))
-                .attr('fill', (_) => this.frqSubgColorScale(i))
-                .attr('r', 2.3)
-                .attr('opacity', 0.7);
-        });
+        this.container
+            .selectAll('path')
+            .data(contourData)
+            .join('path')
+            .attr('d', (d) => line(d))
+            .attr('stroke', 'black');
     }
 }
