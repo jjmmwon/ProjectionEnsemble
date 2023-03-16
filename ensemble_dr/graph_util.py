@@ -59,7 +59,7 @@ def get_concave_hull(
     embedding: np.ndarray shape (N, 2)
     indices: List[int]
     """
-    if len(indices) == 1:
+    if len(indices) < 4:
         return []
 
     return list(
@@ -68,8 +68,8 @@ def get_concave_hull(
             for c in concave_hull(
                 MultiPoint(
                     [(float(embedding[i][0]), float(embedding[i][1])) for i in indices]
-                )
-            ).exterior.coords
+                ), ratio=0.2
+            ).buffer(0.1).exterior.coords
         ]
     )
 
@@ -90,7 +90,7 @@ def get_frequent_subgraphs(graphs: List[nx.Graph], min_support: int) -> List[Lis
         if union_graph.edges[edge]["support"] < min_support:
             union_graph.remove_edge(*edge)
 
-    return [list(c) for c in nx.connected_components(union_graph)]
+    return [list(c) for c in nx.connected_components(union_graph) if len(c) > 3]
 
 
 def get_fsm_results(
@@ -100,6 +100,7 @@ def get_fsm_results(
     for k in preset_k:
         for ms in preset_min_support:
             subgraphs = get_frequent_subgraphs(graphs[k], ms)
+            subgraphs.sort(key=lambda x: len(x), reverse=True)
             contour_coords = [
                 [
                     get_concave_hull(embeddings[i], subgraphs[j])
