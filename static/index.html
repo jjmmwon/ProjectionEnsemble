@@ -23,6 +23,7 @@
         <script src="https://unpkg.com/d3-sankey@0"></script>
         <script src="https://cdn.jsdelivr.net/npm/d3-path@3"></script>
         <script src="https://cdn.jsdelivr.net/npm/d3-array@3"></script>
+        <script src="https://unpkg.com/textures@1.2.0/dist/textures.js"></script>
 
         <link rel="stylesheet" href="./css/index.css" />
         <title>Ensemble DR</title>
@@ -118,107 +119,36 @@
                                 <div
                                     class="manual-setting"
                                     style="display: hidden"
-                                >
-                                    <!-- <div class="t-SNE">
-                    <div class="d-flex pb-1 align-items-center justify-content-between">
-                      <div class="fw-bold">Init</div>
-                      <div>
-                        <div>
-                          <select
-                            id="init"
-                            class="form-select py-1 px-2"
-                            aria-label="Default select example"
-                            style="font-size: 13px; width: 90px"
-                          >
-                            <option selected value="random">Random</option>
-                            <option value="pca">PCA</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="d-flex pb-1 align-items-center justify-content-between">
-                      <div class="fw-bold">Perplexity</div>
-                      <div>
-                        <input
-                          class="form-control px-1 py-1"
-                          type="text"
-                          id="perp"
-                          value="30"
-                        />
-                      </div>
-                    </div>
-                    <div class="d-flex pb-1 align-items-center justify-content-between">
-                      <div class="fw-bold">Learning Rate</div>
-                      <div>
-                        <input
-                          class="form-control px-1 py-1"
-                          type="text"
-                          id="lr"
-                          value="auto"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div class="UMAP" style="display:none">
-                    <div class="d-flex pb-1 justify-content-between">
-                      <div class="fw-bold">n-Neighbors</div>
-                      <div>
-                        <input
-                          class="form-control px-1 py-1"
-                          type="text"
-                          id="nNeighbors"
-                          value="15"
-                        />
-                      </div>
-                    </div>
-                    <div class="d-flex pb-1 justify-content-between">
-                      <div class="fw-bold">Min Dist</div>
-                      <div>
-                        <input
-                          class="form-control px-1 py-1"
-                          type="text"
-                          id="minDist"
-                          value="0.1"
-                        />
-                      </div>
-                    </div>
-                  </div> -->
-                                    <!-- <div class="d-flex pb-1 justify-content-end">
-                    <button class="btn btn-primary py-1" id="addBtn">
-                      ADD
-                    </button>
-                  </div> -->
-                                </div>
+                                ></div>
                                 <div
                                     class="d-flex pt-1 pb-2 justify-content-between"
                                 >
                                     <button class="btn btn-primary" id="runBtn">
-                                        RUN
+                                        <span class="btnText">RUN</span>
                                     </button>
                                 </div>
                             </div>
                         </div>
                         <div class="ensembleDR-section"></div>
                         <div class="fsView-section bg-white mb-2 px-3 py-2">
-                            <div class="fw-bold">Frequent Subset View</div>
+                            <div class="fw-bold">Frequent Subgraph View</div>
                             <div id="fsView"></div>
                         </div>
                         <div
                             class="heatmap-section bg-white px-3 py-2 flex-fill"
                         >
-                            <div class="fw-bold">Heatmap View</div>
+                            <div class="fw-bold">Hyperparameter View</div>
                             <div id="heatmap"></div>
                         </div>
                     </div>
                 </div>
                 <div class="col-10">
                     <div
-                        class="main-section bg-white d-flex flex-column rounded-3 px-3 py-2"
+                        class="main-section d-flex flex-column rounded-3 px-1"
                         style="height: 100%; overflow: auto"
                     >
-                        <div class="fs-5 fw-bold">Embedding View</div>
                         <div
-                            class="scatterplot-section d-flex flex-wrap mt-2 text-center"
+                            class="scatterplot-section d-flex flex-wrap text-center"
                             style="font-size: 15px"
                         ></div>
                     </div>

@@ -5,9 +5,9 @@ class Scatterplot {
         this.div = d3.select(div).append('div');
         this.margin = {
             top: 15,
-            right: 20,
-            bottom: 30,
-            left: 30,
+            right: 10,
+            bottom: 10,
+            left: 10,
         };
         this.width = width - this.margin.left - this.margin.right;
         this.height = height - this.margin.top - this.margin.bottom;
@@ -18,7 +18,10 @@ class Scatterplot {
     }
 
     initialize() {
-        this.div.attr('class', 'scatterplot p-1 m-1 justify-content-center');
+        this.div.attr(
+            'class',
+            'scatterplot bg-white p-1 mb-2 mx-1 rounded-3 justify-content-center'
+        );
 
         this.header = this.div
             .append('div')
@@ -33,16 +36,7 @@ class Scatterplot {
             .attr('class', 'fs-6 fw-bold ms-2 mb-1')
             .text(`${this.method}${this.id}`);
 
-        this.badgeColor = [
-            'primary',
-            'success',
-            'danger',
-            'secondary',
-            'warning',
-            'info',
-            'dark',
-            'light',
-        ];
+        this.badgeColor = ['primary', 'success', 'danger'];
         this.hparams = {
             perplexity: 'perp',
             initialization: 'init',
@@ -65,9 +59,6 @@ class Scatterplot {
         this.svg = this.div.append('svg');
         this.container = this.svg.append('g');
 
-        this.xAxis = this.svg.append('g');
-        this.yAxis = this.svg.append('g');
-
         this.svg
             .attr('width', this.width + this.margin.left + this.margin.right)
             .attr('height', this.height + this.margin.top + this.margin.bottom);
@@ -77,6 +68,7 @@ class Scatterplot {
             `translate(${this.margin.left}, ${this.margin.top})`
         );
 
+        this.contourG = this.container.append('g');
         this.brush = d3
             .brush()
             .extent([
@@ -91,8 +83,9 @@ class Scatterplot {
     }
 
     //update event
-    update(embedding, fsmResult = null) {
+    update(embedding, labelInfo, fsmResult = null) {
         this.embedding = embedding;
+        this.labelInfo = labelInfo;
         this.fsmResult = fsmResult;
 
         let pMax = this.embedding[0]['x'],
@@ -108,17 +101,17 @@ class Scatterplot {
         // set scales
         this.xScale = d3
             .scaleLinear()
-            .domain([pMin * 1.2, pMax * 1.2])
+            .domain([pMin * 1.05, pMax * 1.05])
             .range([0, this.width]);
 
         this.yScale = d3
             .scaleLinear()
-            .domain([pMin * 1.2, pMax * 1.2])
+            .domain([pMin * 1.05, pMax * 1.05])
             .range([this.height, 0]);
 
         this.labelColorScale = d3
             .scaleOrdinal()
-            .domain([...new Set(this.embedding.map((d) => d.label))])
+            .domain(this.labelInfo.labelSet)
             .range(d3.schemeCategory10);
 
         this.frqSubgColorScale = d3
@@ -143,29 +136,10 @@ class Scatterplot {
                 );
             })
             .attr('fill', (d) => this.labelColorScale(d.label))
-            .attr('opacity', 0.4)
+            .attr('opacity', 0.9)
             .attr('r', 2.3);
 
         this.container.call(this.brush);
-
-        // add axes
-        this.xAxis
-            .attr(
-                'transform',
-                `translate(${this.margin.left}, ${
-                    this.height + this.margin.top
-                })`
-            )
-            .transition()
-            .call(d3.axisBottom(this.xScale));
-
-        this.yAxis
-            .attr(
-                'transform',
-                `translate(${this.margin.left}, ${this.margin.top})`
-            )
-            .transition()
-            .call(d3.axisLeft(this.yScale));
 
         return this;
     }
@@ -215,17 +189,45 @@ class Scatterplot {
             if (fs.min_support == min_support && fs.k == k)
                 contourData = fs.contour_coords[this.id];
         });
+
         console.log(contourData);
         const line = d3
             .line()
             .x((d) => this.xScale(d[0]))
             .y((d) => this.yScale(d[1]));
 
-        this.container
+        this.textureScale = [
+            textures.lines(),
+            textures
+                .lines()
+                .orientation('vertical')
+                .strokeWidth(1)
+                .shapeRendering('crispEdges'),
+            textures.lines().orientation('3/8', '7/8'),
+            textures
+                .lines()
+                .orientation('vertical', 'horizontal')
+                .size(4)
+                .strokeWidth(1)
+                .shapeRendering('crispEdges'),
+            textures.circles().size(5),
+            textures.paths().d('crosses').lighter().thicker(),
+            textures.paths().d('waves').thicker(),
+            textures.paths().d('nylon').lighter().shapeRendering('crispEdges'),
+            textures.paths().d('hexagons').size(4).strokeWidth(2),
+            textures.lines().orientation('3/8'),
+        ];
+        this.textureScale.forEach((t) => {
+            this.svg.call(t.background('lightgray'));
+        });
+        this.contourG
             .selectAll('path')
             .data(contourData)
             .join('path')
             .attr('d', (d) => line(d))
-            .attr('stroke', 'black');
+            .attr('fill', (d, i) => this.textureScale[i % 10].url())
+            .attr('fill-opacity', 0.6)
+            .attr('stroke', 'black')
+            .attr('stroke-opacity', 0.8);
     }
 }

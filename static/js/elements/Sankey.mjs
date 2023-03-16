@@ -3,30 +3,52 @@ export { Sankey };
 class Sankey {
     constructor(id, width, height) {
         this.id = id;
-        this.margin = { top: 10, right: 10, bottom: 10, left: 10 };
+        this.margin = { top: 20, right: 10, bottom: 10, left: 10 };
         this.width = width - this.margin.left - this.margin.right;
         this.height = height - this.margin.top - this.margin.bottom;
     }
 
-    initialize(data) {
-        this.data = data;
+    initialize(fsmResult, labelInfo) {
+        this.fsmResult = fsmResult;
+        this.labelSet = labelInfo.labelSet;
+        this.labels = labelInfo.labels;
+        this.labelLength = this.labelSet.length;
+
         this.div = d3.select(this.id).append('div');
 
         // Draw Header
         this.header = this.div
             .append('div')
-            .attr('class', 'd-flex justify-content-center');
+            .attr('class', 'd-flex justify-content-center my-1');
         this.kSpan = this.header
             .append('span')
-            .attr('class', 'badge rounded-pill bg-warning text-dark mx-2');
+            .attr('class', 'badge rounded-pill bg-primary mx-2');
         this.msSpan = this.header
             .append('span')
-            .attr('class', 'badge rounded-pill bg-warning text-dark mx-2');
+            .attr('class', 'badge rounded-pill bg-success mx-2');
 
         this.svg = this.div
             .append('svg')
             .attr('width', this.width + this.margin.left + this.margin.right)
             .attr('height', this.height + this.margin.top + this.margin.bottom);
+
+        this.fsLabel = this.svg
+            .append('text')
+            .attr('transform', `translate(${this.margin.left + 8}, 15)`)
+            .attr('text-anchor', 'middle')
+            .attr('font-size', '14px')
+            .attr('font-weight', 'bold')
+            .text('FS');
+        this.classLabel = this.svg
+            .append('text')
+            .attr(
+                'transform',
+                `translate(${this.margin.left + this.width - 9}, 15)`
+            )
+            .attr('text-anchor', 'middle')
+            .attr('font-size', '14px')
+            .attr('font-weight', 'bold')
+            .text('Class');
 
         this.container = this.svg
             .append('g')
@@ -35,23 +57,25 @@ class Sankey {
                 `translate(${this.margin.left},${this.margin.top})`
             );
 
-        this.labelColorScale = d3.scaleOrdinal([], d3.schemeCategory10);
-        this.fsColorScale = d3.scaleOrdinal([], d3.schemeTableau10);
-
         return this;
     }
 
     update(k = 5, min_support = 8) {
         this.k = k;
         this.min_support = min_support;
-        this.fsmResult = this.data.fsm_results;
-        this.labelInfo = this.data.dr_results[0].embedding.map((d) => d.label);
+
+        this.labelColorScale = d3.scaleOrdinal([], d3.schemeCategory10);
 
         this.fsmResult.forEach((d) => {
             if (d.k == this.k && d.min_support == this.min_support) {
                 this.subgraphs = d.subgraphs;
             }
         });
+
+        this.kSpan.text(`k: ${this.k}`).attr('font-size', '112px');
+        this.msSpan
+            .text(`min_support: ${this.min_support}`)
+            .attr('font-size', '112px');
 
         this.makeGraph();
 
@@ -69,7 +93,7 @@ class Sankey {
             .nodePadding(5)
             .extent([
                 [0, 0],
-                [this.width, this.height],
+                [this.width, this.height - 50],
             ])({
             nodes,
             links,
@@ -78,6 +102,10 @@ class Sankey {
         this.container.selectAll('g').remove();
         this.node = this.container.append('g');
         this.link = this.container.append('g');
+
+        this.classLegend = this.container.append('g');
+        this.legendRect = this.classLegend.append('g');
+        this.legendText = this.classLegend.append('g');
 
         this.node
             .selectAll('rect')
@@ -104,6 +132,7 @@ class Sankey {
             .attr('stroke', '#000')
             .attr('stroke-width', ({ width }) => Math.max(2, width))
             .sort((a, b) => b.dy - a.dy);
+        this.drawLegend();
     }
 
     makeGraph() {
@@ -112,26 +141,16 @@ class Sankey {
             links: [],
         };
 
-        this.graph.nodes = [...new Set(this.labelInfo)];
-        this.labelLength = this.graph.nodes.length;
-        this.graph.nodes =
-            this.graph.nodes.length !== 1
-                ? this.graph.nodes.sort((a, b) => {
-                      return (
-                          this.labelInfo.filter((c) => c == b).length -
-                          this.labelInfo.filter((c) => c == a).length
-                      );
-                  })
-                : this.graph.nodes;
+        this.graph.nodes = [...this.labelSet];
+        let outliers = [...new Array(this.labels.length)].map((_, i) => i);
 
-        let outliers = [...new Array(this.labelInfo.length)].map((_, i) => i);
-
+        // Subgraphs nodes
         this.subgraphs.forEach((fs, i) => {
             this.graph.nodes.push('FS' + i);
             outliers = outliers.filter((o) => !fs.includes(o));
 
             let target = [
-                ...new Set(this.subgraphs[i].map((j) => this.labelInfo[j])),
+                ...new Set(this.subgraphs[i].map((j) => this.labels[j])),
             ];
 
             target.forEach((t) => {
@@ -139,21 +158,22 @@ class Sankey {
                     source: this.graph.nodes.indexOf('FS' + i),
                     target: this.graph.nodes.indexOf(t),
                     value: this.subgraphs[i]
-                        .map((j) => this.labelInfo[j])
+                        .map((j) => this.labels[j])
                         .filter((c) => c == t).length,
                 });
             });
         });
 
+        // Outliers node
         this.graph.nodes.push('Outliers');
-        let target = [...new Set(outliers.map((i) => this.labelInfo[i]))];
+        let target = [...new Set(outliers.map((i) => this.labels[i]))];
+        console.log(outliers);
         target.forEach((t) => {
             this.graph.links.push({
                 source: this.graph.nodes.indexOf('Outliers'),
                 target: this.graph.nodes.indexOf(t),
-                value: outliers
-                    .map((i) => this.labelInfo[i])
-                    .filter((c) => c == t).length,
+                value: outliers.map((i) => this.labels[i]).filter((c) => c == t)
+                    .length,
             });
         });
 
@@ -162,5 +182,29 @@ class Sankey {
                 id: i,
             };
         });
+    }
+
+    drawLegend() {
+        this.classLegend
+            .attr('transform', `translate(0,${this.height - 35})`)
+            .attr('font-size', '13px');
+
+        this.legendRect
+            .selectAll('rect')
+            .data(this.labelSet)
+            .join('rect')
+            .attr('x', (_, i) => (i % 5) * Math.floor(this.width / 5))
+            .attr('y', (_, i) => Math.floor(i / 5) * 20)
+            .attr('width', 10)
+            .attr('height', 10)
+            .attr('fill', (_, i) => this.labelColorScale(i));
+
+        this.legendText
+            .selectAll('text')
+            .data(this.labelSet)
+            .join('text')
+            .attr('x', (_, i) => (i % 5) * Math.floor(this.width / 5) + 15)
+            .attr('y', (_, i) => Math.floor(i / 5) * 20 + 10)
+            .text((d) => d);
     }
 }

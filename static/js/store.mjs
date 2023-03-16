@@ -5,12 +5,12 @@ import { Scatterplot } from './elements/Scatterplot.mjs';
 let embeddingView = {
     scatterplots: [],
     brushedSet: new Set(),
-    add(id, method, hyperparams, embedding, fsmResult) {
+    add(id, method, hyperparams, embedding, labelInfo, fsmResult) {
         let sc = new Scatterplot(
             id,
             '.scatterplot-section',
-            290,
-            290,
+            295,
+            295,
             method,
             hyperparams,
             this.brushedSet
@@ -25,7 +25,7 @@ let embeddingView = {
                     if (sc !== sc2) sc2.hideBrush();
                 });
             })
-            .update(embedding, fsmResult)
+            .update(embedding, labelInfo, fsmResult)
             .drawContour(5, 8);
 
         this.scatterplots.push(sc);
@@ -45,10 +45,10 @@ let embeddingView = {
 };
 
 let fsView = {
-    sankey: new Sankey('#fsView', 270, 350),
+    sankey: new Sankey('#fsView', 280, 380),
 
-    add(data) {
-        this.sankey.initialize(data).update();
+    add(data, labelInfo) {
+        this.sankey.initialize(data, labelInfo).update();
     },
     update(k, ms) {
         this.sankey.update(k, ms);
@@ -59,7 +59,7 @@ let fsView = {
     },
 };
 
-let heatmapView = {
+let hyperparameterView = {
     heatmap: new Heatmap('#heatmap', 250, 250),
 
     add(fsmResult) {
@@ -77,4 +77,19 @@ let heatmapView = {
     },
 };
 
-export { embeddingView, fsView, heatmapView };
+let labelInfo = {
+    labelSet: [],
+    labels: [],
+    add(labels) {
+        this.labels = labels;
+        this.labelSet = [...new Set(labels)];
+        this.labelSet.sort((a, b) => {
+            return (
+                this.labels.filter((c) => c == b).length -
+                this.labels.filter((c) => c == a).length
+            );
+        });
+    },
+};
+
+export { embeddingView, fsView, hyperparameterView, labelInfo };

@@ -3,15 +3,15 @@ export { Heatmap };
 class Heatmap {
     constructor(id, width = 300, height = 300) {
         this.id = id;
-        this.width = width;
-        this.height = height;
         this.margin = {
-            top: 40,
+            top: 20,
             right: 20,
-            bottom: 20,
-            left: 20,
+            bottom: 50,
+            left: 40,
         };
-        this.k = [3, 4, 5, 7, 10];
+        this.width = width - this.margin.left - this.margin.right;
+        this.height = height - this.margin.top - this.margin.bottom;
+        this.k = [5, 7, 8, 9, 10];
         this.minSupport = [6, 7, 8, 9, 10];
         this.handlers = {};
     }
@@ -22,8 +22,14 @@ class Heatmap {
         this.container = this.svg.append('g');
         this.xAxis = this.svg.append('g');
         this.yAxis = this.svg.append('g');
+        this.xAxisLabel = this.svg.append('text');
+        this.yAxisLabel = this.svg.append('text');
+        this.cells = this.container.append('g');
+        this.cellsText = this.container.append('g');
 
-        this.svg.attr('width', this.width).attr('height', this.height);
+        this.svg
+            .attr('width', this.width + this.margin.left + this.margin.right)
+            .attr('height', this.height + this.margin.top + this.margin.bottom);
 
         this.container.attr(
             'transform',
@@ -33,23 +39,25 @@ class Heatmap {
         this.xScale = d3
             .scaleBand()
             .domain(this.minSupport)
-            .range([0, this.width - this.margin.left - this.margin.right])
+            .range([0, this.width])
             .padding(0.01);
 
         this.yScale = d3
             .scaleBand()
             .domain(this.k)
-            .range([0, this.height - this.margin.top - this.margin.bottom])
+            .range([0, this.height])
             .padding(0.01);
 
-        this.colorScale = d3.scaleLinear().domain([1, 100]).range([0, 1]);
+        this.colorScale = d3.scaleLinear().range([0, 1]);
 
         this.xAxis
             .attr(
                 'transform',
-                `translate(${this.margin.left}, ${this.margin.top})`
+                `translate(${this.margin.left}, ${
+                    this.height + this.margin.top
+                })`
             )
-            .call(d3.axisTop(this.xScale));
+            .call(d3.axisBottom(this.xScale));
 
         this.yAxis
             .attr(
@@ -58,6 +66,32 @@ class Heatmap {
             )
             .call(d3.axisLeft(this.yScale));
 
+        this.xAxisLabel
+            .attr(
+                'transform',
+                `translate(${this.width / 2 + this.margin.left}, ${
+                    this.height + this.margin.top + 25
+                })`
+            )
+            .attr('text-anchor', 'middle')
+            .attr('alignment-baseline', 'middle')
+            .text('min_support')
+            .attr('font-size', '12px')
+            .attr('font-weight', 'bold');
+
+        this.yAxisLabel
+            .attr(
+                'transform',
+                `translate(15, ${
+                    this.height / 2 + this.margin.top
+                }) rotate(-90)`
+            )
+            .attr('text-anchor', 'middle')
+            .attr('alignment-baseline', 'middle')
+            .text('k')
+            .attr('font-size', '12px')
+            .attr('font-weight', 'bold');
+
         this.kBand = this.k.map((d) => this.yScale(d));
         this.msBand = this.minSupport.map((d) => this.xScale(d));
 
@@ -65,7 +99,10 @@ class Heatmap {
     }
 
     update(fsmResult) {
-        this.container
+        this.maxSubgraphsLength = d3.max(fsmResult, (d) => d.subgraphs.length);
+        this.colorScale.domain([1, Math.ceil(this.maxSubgraphsLength * 1.5)]);
+
+        this.cells
             .selectAll('rect')
             .data(fsmResult)
             .join('rect')
@@ -79,7 +116,7 @@ class Heatmap {
             )
             .on('click', (event) => this.clickCell(event));
 
-        this.container
+        this.cellsText
             .selectAll('text')
             .data(fsmResult)
             .join('text')
