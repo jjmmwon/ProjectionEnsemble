@@ -1,6 +1,15 @@
 export { Scatterplot };
 class Scatterplot {
-    constructor(id, div, width, height, method, hyperparameters, brushedSet) {
+    constructor(
+        id,
+        div,
+        width,
+        height,
+        method,
+        hyperparameters,
+        brushedSet,
+        hoverEvent
+    ) {
         this.id = id;
         this.div = d3.select(div).append('div');
         this.margin = {
@@ -14,6 +23,7 @@ class Scatterplot {
         this.method = method.substr(0, 4) == 'tsne' ? 't-SNE' : 'UMAP';
         this.hyperparameters = hyperparameters;
         this.brushedSet = brushedSet;
+        this.hoverEvent = hoverEvent;
         this.handlers = {};
     }
 
@@ -25,11 +35,12 @@ class Scatterplot {
 
         this.header = this.div
             .append('div')
-            .attr('class', 'd-flex justify-content-between');
+            .attr('class', 'd-flex justify-content-between mt-1');
 
         this.hpramDiv = this.div
             .append('div')
-            .attr('class', 'd-flex justify-content-evenly');
+            .attr('class', 'd-flex justify-content-evenly')
+            .style('font-family', 'var(--bs-body-font-family)');
 
         this.header
             .append('div')
@@ -83,10 +94,11 @@ class Scatterplot {
     }
 
     //update event
-    update(embedding, labelInfo, fsmResult = null) {
+    update(embedding, labelInfo, fsmResult, textureScale) {
         this.embedding = embedding;
         this.labelInfo = labelInfo;
         this.fsmResult = fsmResult;
+        this.textureScale = textureScale;
 
         let pMax = this.embedding[0]['x'],
             pMin = this.embedding[0]['x'];
@@ -114,10 +126,12 @@ class Scatterplot {
             .domain(this.labelInfo.labelSet)
             .range(d3.schemeCategory10);
 
-        this.frqSubgColorScale = d3
+        this.fsColorScale = [...d3.schemeCategory10];
+        this.fsColorScale.splice(7, 1);
+        this.fsColorScale = d3
             .scaleOrdinal()
-            .domain([...new Array(10)].map((_, i) => i))
-            .range(d3.schemeCategory10);
+            .domain(new Set([...new Array(9)].map((_, i) => i)))
+            .range(this.fsColorScale);
 
         // append points
         this.circles = this.container
@@ -136,10 +150,10 @@ class Scatterplot {
                 );
             })
             .attr('fill', (d) => this.labelColorScale(d.label))
-            .attr('opacity', 0.9)
-            .attr('r', 2.3);
+            .attr('opacity', 0.7)
+            .attr('r', 2);
 
-        this.container.call(this.brush);
+        // this.container.call(this.brush);
 
         return this;
     }
@@ -172,6 +186,16 @@ class Scatterplot {
         }
     }
 
+    mouseOver(circleIndices) {
+        this.circles
+            .filter((d) => circleIndices.includes(d.id))
+            .attr('r', 4)
+            .attr('opacity', 0.8);
+    }
+    mouseOut() {
+        this.circles.attr('r', 2).attr('opacity', 0.7);
+    }
+
     on(eventType, handler) {
         this.handlers[eventType] = handler;
         return this;
@@ -183,51 +207,88 @@ class Scatterplot {
             .attr('opacity', 0.8);
     }
 
-    drawContour(k, min_support) {
-        let contourData;
+    getFSMdata(k, min_support) {
         this.fsmResult.forEach((fs) => {
-            if (fs.min_support == min_support && fs.k == k)
-                contourData = fs.contour_coords[this.id];
+            if (fs.min_support == min_support && fs.k == k) {
+                this.contourData = fs.contour_coords[this.id];
+                this.subgraphs = fs.subgraphs;
+            }
         });
+    }
 
-        console.log(contourData);
+    drawContour(k, min_support) {
+        this.getFSMdata(k, min_support);
+
         const line = d3
             .line()
             .x((d) => this.xScale(d[0]))
             .y((d) => this.yScale(d[1]));
 
-        this.textureScale = [
-            textures.lines(),
-            textures
-                .lines()
-                .orientation('vertical')
-                .strokeWidth(1)
-                .shapeRendering('crispEdges'),
-            textures.lines().orientation('3/8', '7/8'),
-            textures
-                .lines()
-                .orientation('vertical', 'horizontal')
-                .size(4)
-                .strokeWidth(1)
-                .shapeRendering('crispEdges'),
-            textures.circles().size(5),
-            textures.paths().d('crosses').lighter().thicker(),
-            textures.paths().d('waves').thicker(),
-            textures.paths().d('nylon').lighter().shapeRendering('crispEdges'),
-            textures.paths().d('hexagons').size(4).strokeWidth(2),
-            textures.lines().orientation('3/8'),
-        ];
-        this.textureScale.forEach((t) => {
-            this.svg.call(t.background('lightgray'));
+        this.textureScale.callTextures((t) => {
+            this.svg.call(t);
         });
-        this.contourG
+
+        this.contours = this.contourG
             .selectAll('path')
-            .data(contourData)
-            .join('path')
+            .data(this.contourData)
+            .join('path');
+
+        this.contours
             .attr('d', (d) => line(d))
-            .attr('fill', (d, i) => this.textureScale[i % 10].url())
-            .attr('fill-opacity', 0.6)
+            .attr('fill', (_, i) =>
+                this.textureScale
+                    .getTexture(i % this.textureScale.length())
+                    .url()
+            )
+            .attr('id', (_, i) => `FS${i}`)
+            .attr('fill-opacity', 0.5)
             .attr('stroke', 'black')
-            .attr('stroke-opacity', 0.8);
+            .attr('stroke-opacity', 0.8)
+            .on('mouseover', (d) => {
+                let id = +d3.select(d.target).attr('id').slice(2);
+                this.hoverEvent('mouseOver', this.subgraphs[id]);
+            })
+            .on('mouseout', (_) => {
+                this.hoverEvent('mouseOut');
+            });
+    }
+
+    removeContour() {
+        this.contourG.remove();
+        this.contourG = this.container.append('g');
+    }
+
+    changeMode(mode) {
+        let k = d3.select('#kSelector').property('value'),
+            minSupport = d3.select('#msSelector').property('value');
+        if (mode == 'dualMode') {
+            this.circles.attr('fill', (d) => this.labelColorScale(d.label));
+            this.drawContour(k, minSupport);
+        } else if (mode == 'fsMode') {
+            this.removeContour();
+            this.getFSMdata(k, minSupport);
+            this.circles.attr('fill', d3.schemeCategory10[7]);
+            this.subgraphs.forEach((fs, i) => {
+                if (i < 9)
+                    this.circles
+                        .filter((d) => fs.includes(d.id))
+                        .attr('fill', this.fsColorScale(i));
+            });
+        } else {
+            this.removeContour();
+            this.circles.attr('fill', (d) => this.labelColorScale(d.label));
+        }
+    }
+
+    updateHyperparams() {
+        let mode = d3
+            .select(
+                d3
+                    .selectAll('#modeBtns')
+                    .nodes()
+                    .filter((n) => d3.select(n).classed('btn-primary'))[0]
+            )
+            .property('value');
+        this.changeMode(mode);
     }
 }

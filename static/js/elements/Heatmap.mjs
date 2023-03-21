@@ -17,7 +17,10 @@ class Heatmap {
     }
 
     initialize() {
-        this.div = d3.select(this.id).append('div');
+        this.div = d3
+            .select(this.id)
+            .append('div')
+            .attr('class', 'd-flex justify-content-center me-3');
         this.svg = this.div.append('svg');
         this.container = this.svg.append('g');
         this.xAxis = this.svg.append('g');
@@ -82,9 +85,7 @@ class Heatmap {
         this.yAxisLabel
             .attr(
                 'transform',
-                `translate(15, ${
-                    this.height / 2 + this.margin.top
-                }) rotate(-90)`
+                `translate(15, ${this.height / 2 + this.margin.top})`
             )
             .attr('text-anchor', 'middle')
             .attr('alignment-baseline', 'middle')

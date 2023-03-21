@@ -8,11 +8,12 @@ class Sankey {
         this.height = height - this.margin.top - this.margin.bottom;
     }
 
-    initialize(fsmResult, labelInfo) {
+    initialize(fsmResult, labelInfo, textureScale) {
         this.fsmResult = fsmResult;
         this.labelSet = labelInfo.labelSet;
         this.labels = labelInfo.labels;
         this.labelLength = this.labelSet.length;
+        this.textureScale = textureScale;
 
         this.div = d3.select(this.id).append('div');
 
@@ -22,10 +23,12 @@ class Sankey {
             .attr('class', 'd-flex justify-content-center my-1');
         this.kSpan = this.header
             .append('span')
-            .attr('class', 'badge rounded-pill bg-primary mx-2');
+            .attr('class', 'badge rounded-pill bg-primary mx-2')
+            .style('font-family', 'var(--bs-body-font-family)');
         this.msSpan = this.header
             .append('span')
-            .attr('class', 'badge rounded-pill bg-success mx-2');
+            .attr('class', 'badge rounded-pill bg-success mx-2')
+            .style('font-family', 'var(--bs-body-font-family)');
 
         this.svg = this.div
             .append('svg')
@@ -39,6 +42,7 @@ class Sankey {
             .attr('font-size', '14px')
             .attr('font-weight', 'bold')
             .text('FS');
+
         this.classLabel = this.svg
             .append('text')
             .attr(
@@ -60,9 +64,9 @@ class Sankey {
         return this;
     }
 
-    update(k = 5, min_support = 8) {
-        this.k = k;
-        this.min_support = min_support;
+    update() {
+        this.k = d3.select('#kSelector').property('value');
+        this.min_support = d3.select('#msSelector').property('value');
 
         this.labelColorScale = d3.scaleOrdinal([], d3.schemeCategory10);
 
@@ -72,10 +76,10 @@ class Sankey {
             }
         });
 
-        this.kSpan.text(`k: ${this.k}`).attr('font-size', '112px');
+        this.kSpan.text(`k: ${this.k}`).attr('font-size', '20px');
         this.msSpan
             .text(`min_support: ${this.min_support}`)
-            .attr('font-size', '112px');
+            .attr('font-size', '20px');
 
         this.makeGraph();
 
@@ -107,6 +111,10 @@ class Sankey {
         this.legendRect = this.classLegend.append('g');
         this.legendText = this.classLegend.append('g');
 
+        this.textureScale.callTextures((t) => {
+            this.svg.call(t);
+        });
+
         this.node
             .selectAll('rect')
             .data(nodes)
@@ -114,7 +122,18 @@ class Sankey {
             .style('fill', (d) => {
                 return d.id < this.labelLength
                     ? this.labelColorScale(d.id)
+                    : d.id < this.labelLength + this.textureScale.length() &&
+                      d.id < nodes.length - 1
+                    ? this.textureScale
+                          .getTexture(
+                              (d.id - this.labelLength) %
+                                  this.textureScale.length()
+                          )
+                          .url()
                     : 'gray';
+            })
+            .attr('stroke', (d) => {
+                return d.id < this.labelLength ? 'none' : 'black';
             })
             .attr('x', (d) => d.x0)
             .attr('y', (d) => d.y0)
@@ -167,7 +186,6 @@ class Sankey {
         // Outliers node
         this.graph.nodes.push('Outliers');
         let target = [...new Set(outliers.map((i) => this.labels[i]))];
-        console.log(outliers);
         target.forEach((t) => {
             this.graph.links.push({
                 source: this.graph.nodes.indexOf('Outliers'),
