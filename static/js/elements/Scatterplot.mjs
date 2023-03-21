@@ -21,6 +21,7 @@ class Scatterplot {
         this.width = width - this.margin.left - this.margin.right;
         this.height = height - this.margin.top - this.margin.bottom;
         this.method = method.substr(0, 4) == 'tsne' ? 't-SNE' : 'UMAP';
+        this.mode = 'dualMode';
         this.hyperparameters = hyperparameters;
         this.brushedSet = brushedSet;
         this.hoverEvent = hoverEvent;
@@ -94,7 +95,7 @@ class Scatterplot {
     }
 
     //update event
-    update(embedding, labelInfo, fsmResult, textureScale) {
+    embedData(embedding, labelInfo, fsmResult, textureScale) {
         this.embedding = embedding;
         this.labelInfo = labelInfo;
         this.fsmResult = fsmResult;
@@ -149,12 +150,17 @@ class Scatterplot {
                     ')'
                 );
             })
-            .attr('fill', (d) => this.labelColorScale(d.label))
+            .attr('fill', (d) => 'gray')
             .attr('opacity', 0.7)
             .attr('r', 2);
 
         // this.container.call(this.brush);
 
+        return this;
+    }
+
+    on(eventType, handler) {
+        this.handlers[eventType] = handler;
         return this;
     }
 
@@ -186,6 +192,12 @@ class Scatterplot {
         }
     }
 
+    highlightBrushed() {
+        this.circles
+            .classed('brushed', (d) => this.brushedSet.has(d.id))
+            .attr('opacity', 0.8);
+    }
+
     mouseOver(circleIndices) {
         this.circles
             .filter((d) => circleIndices.includes(d.id))
@@ -196,29 +208,7 @@ class Scatterplot {
         this.circles.attr('r', 2).attr('opacity', 0.7);
     }
 
-    on(eventType, handler) {
-        this.handlers[eventType] = handler;
-        return this;
-    }
-
-    highlightBrushed() {
-        this.circles
-            .classed('brushed', (d) => this.brushedSet.has(d.id))
-            .attr('opacity', 0.8);
-    }
-
-    getFSMdata(k, min_support) {
-        this.fsmResult.forEach((fs) => {
-            if (fs.min_support == min_support && fs.k == k) {
-                this.contourData = fs.contour_coords[this.id];
-                this.subgraphs = fs.subgraphs;
-            }
-        });
-    }
-
-    drawContour(k, min_support) {
-        this.getFSMdata(k, min_support);
-
+    drawContour() {
         const line = d3
             .line()
             .x((d) => this.xScale(d[0]))
@@ -258,15 +248,16 @@ class Scatterplot {
         this.contourG = this.container.append('g');
     }
 
-    changeMode(mode) {
-        let k = d3.select('#kSelector').property('value'),
-            minSupport = d3.select('#msSelector').property('value');
-        if (mode == 'dualMode') {
+    updateView(mode) {
+        this.mode = mode ? mode : this.mode;
+
+        this.updateHyperparams();
+
+        if (this.mode == 'dualMode') {
             this.circles.attr('fill', (d) => this.labelColorScale(d.label));
-            this.drawContour(k, minSupport);
-        } else if (mode == 'fsMode') {
+            this.drawContour();
+        } else if (this.mode == 'fsMode') {
             this.removeContour();
-            this.getFSMdata(k, minSupport);
             this.circles.attr('fill', d3.schemeCategory10[7]);
             this.subgraphs.forEach((fs, i) => {
                 if (i < 9)
@@ -281,14 +272,14 @@ class Scatterplot {
     }
 
     updateHyperparams() {
-        let mode = d3
-            .select(
-                d3
-                    .selectAll('#modeBtns')
-                    .nodes()
-                    .filter((n) => d3.select(n).classed('btn-primary'))[0]
-            )
-            .property('value');
-        this.changeMode(mode);
+        this.k = d3.select('#kSelector').property('value');
+        this.minSupport = d3.select('#msSelector').property('value');
+
+        this.fsmResult.forEach((fs) => {
+            if (fs.min_support == this.minSupport && fs.k == this.k) {
+                this.contourData = fs.contour_coords[this.id];
+                this.subgraphs = fs.subgraphs;
+            }
+        });
     }
 }

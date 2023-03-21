@@ -1,4 +1,9 @@
-import { ensembleDR, changeMode, foldConfigView } from './eventHandlers.mjs';
+import {
+    ensembleDR,
+    changeMode,
+    foldConfigView,
+    changeHyperparams,
+} from './eventHandlers.mjs';
 
 function main() {
     d3.select('#runBtn').on('click', ensembleDR);
@@ -15,10 +20,8 @@ function main() {
         });
     });
 
-    d3.selectAll('#hpramSelector').each(function () {
-        d3.select(this).on('change', function () {
-            console.log(this);
-        });
+    d3.selectAll('.hpramSelector').each(function () {
+        d3.select(this).on('change', changeHyperparams);
     });
 }
 

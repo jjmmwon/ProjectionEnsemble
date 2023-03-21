@@ -5,17 +5,10 @@ import { Scatterplot } from './Scatterplot.mjs';
 let embeddingView = {
     scatterplots: [],
     brushedSet: new Set(),
-    add(
-        id,
-        method,
-        hyperparams,
-        embedding,
-        labelInfo,
-        fsmResult,
-        textureScale
-    ) {
+
+    add(method, hyperparams, embedding, labelInfo, fsmResult, textureScale) {
         let sc = new Scatterplot(
-            id,
+            this.scatterplots.length,
             '.scatterplot-section',
             295,
             295,
@@ -34,8 +27,8 @@ let embeddingView = {
             //         if (sc !== sc2) sc2.hideBrush();
             //     });
             // })
-            .update(embedding, labelInfo, fsmResult, textureScale)
-            .changeMode('dualMode');
+            .embedData(embedding, labelInfo, fsmResult, textureScale)
+            .updateView('dualMode');
 
         this.scatterplots.push(sc);
 
@@ -55,20 +48,22 @@ let embeddingView = {
         }
     },
 
-    updateHyperparams() {
+    updateView(mode) {
         this.scatterplots.forEach((sc) => {
-            sc.updateHyperparams();
-        });
-    },
-
-    changeMode(mode) {
-        this.scatterplots.forEach((sc) => {
-            sc.changeMode(mode);
+            sc.updateView(mode);
         });
     },
 
     length() {
         return this.scatterplots.length;
+    },
+
+    reset() {
+        this.scatterplots.forEach((sc) => {
+            sc.div.remove();
+        });
+        this.scatterplots = [];
+        this.brushedSet.clear();
     },
 };
 
@@ -78,7 +73,7 @@ let fsView = {
     add(data, labelInfo, textureScale) {
         this.sankey.initialize(data, labelInfo, textureScale).update();
     },
-    update() {
+    updateView() {
         this.sankey.update();
     },
 
@@ -97,8 +92,8 @@ let hyperparameterView = {
             .on('click', (ms, k) => {
                 d3.select('#kSelector').property('value', k);
                 d3.select('#msSelector').property('value', ms);
-                embeddingView.updateHyperparams();
-                fsView.update(k, ms);
+                embeddingView.updateView();
+                fsView.updateView();
             });
     },
 
@@ -324,4 +319,44 @@ let textureScale = {
     },
 };
 
-export { embeddingView, fsView, hyperparameterView, labelInfo, textureScale };
+async function ensembleDR(title, method) {
+    let drResult, fsmResult;
+
+    reset();
+
+    await d3.json(`/v1/preset?title=${title}&method=${method}`).then((data) => {
+        console.log(data);
+        drResult = data.dr_results;
+        fsmResult = data.fsm_results;
+
+        labelInfo.add(drResult[0].embedding.map((e) => e.label));
+
+        drResult.forEach((e) => {
+            embeddingView.add(
+                method,
+                e.hyper_parameters,
+                e.embedding,
+                labelInfo,
+                fsmResult,
+                textureScale
+            );
+        });
+
+        fsView.add(fsmResult, labelInfo, textureScale);
+        hyperparameterView.add(fsmResult);
+    });
+}
+
+function updateView(mode) {
+    embeddingView.updateView(mode);
+    fsView.updateView();
+}
+
+function reset() {
+    if (!embeddingView.length()) return;
+    embeddingView.reset();
+    fsView.reset();
+    hyperparameterView.reset();
+}
+
+export { ensembleDR, updateView };

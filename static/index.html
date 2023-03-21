@@ -39,7 +39,7 @@
             </div>
         </header>
         <main class="container flex-fill">
-            <div class="row g-2" style="height: 100%">
+            <div class="row g-1" style="height: 100%">
                 <div class="col-2">
                     <div
                         class="sidebar d-flex flex-column"
@@ -48,8 +48,20 @@
                         <div
                             class="configView bg-white d-flex flex-column rounded-3 mb-2 px-3"
                         >
-                            <div class="fw-bold ps-1 pt-2 pb-1">
-                                Configuration View
+                            <div
+                                class="config-header d-flex justify-content-between pt-2 pb-1"
+                            >
+                                <div class="fw-bold ps-1">
+                                    Configuration View
+                                </div>
+                                <i
+                                    class="bi bi-chevron-double-up fold"
+                                    id="configBtn"
+                                ></i>
+                                <i
+                                    class="bi bi-chevron-double-down d-none unfold"
+                                    id="configBtn"
+                                ></i>
                             </div>
                             <div class="config-section px-1">
                                 <div
@@ -129,16 +141,107 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="ensembleDR-section"></div>
-                        <div class="fsView-section bg-white mb-2 px-3 py-2">
-                            <div class="fw-bold">Frequent Subgraph View</div>
-                            <div id="fsView"></div>
+                        <div
+                            class="controller-section bg-white mb-2 px-3 py-2 rounded-3"
+                        >
+                            <div class="fw-bold">Controller View</div>
+                            <div id="controller">
+                                <div
+                                    class="kSelector d-flex align-items-center justify-content-between pt-1"
+                                >
+                                    <div class="fw-bold">K</div>
+                                    <div>
+                                        <select
+                                            id="kSelector"
+                                            class="form-select py-1 px-2 hpramSelector"
+                                            aria-label="Default select example"
+                                            style="
+                                                font-size: 13px;
+                                                width: 100px;
+                                            "
+                                        >
+                                            <option value="5">5</option>
+                                            <option selected value="7">
+                                                7
+                                            </option>
+                                            <option value="8">8</option>
+                                            <option value="9">9</option>
+                                            <option value="10">10</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div
+                                    class="msSelector d-flex align-items-center justify-content-between py-1"
+                                >
+                                    <div class="fw-bold">Min Support</div>
+                                    <div>
+                                        <select
+                                            id="msSelector"
+                                            class="form-select py-1 px-2 hpramSelector"
+                                            aria-label="Default select example"
+                                            style="
+                                                font-size: 13px;
+                                                width: 100px;
+                                            "
+                                        >
+                                            <option value="6">6</option>
+                                            <option value="7">7</option>
+                                            <option selected value="8">
+                                                8
+                                            </option>
+                                            <option value="9">9</option>
+                                            <option value="10">10</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div
+                                    class="modeSelector d-flex align-items-center justify-content-between"
+                                >
+                                    <div class="dual pe-1">
+                                        <button
+                                            class="btn btn-primary px-1 pb-1"
+                                            id="modeBtns"
+                                            value="dualMode"
+                                        >
+                                            <span class="fw-bold"
+                                                >Dual Mode</span
+                                            >
+                                        </button>
+                                    </div>
+                                    <div class="fsOnly">
+                                        <button
+                                            class="btn btn-outline-primary px-1 pb-1"
+                                            id="modeBtns"
+                                            value="fsMode"
+                                        >
+                                            <span class="fw-bold">FS Mode</span>
+                                        </button>
+                                    </div>
+                                    <div class="classOnly ps-1">
+                                        <button
+                                            class="btn btn-outline-primary px-1 pb-1"
+                                            id="modeBtns"
+                                            value="classMode"
+                                        >
+                                            <span class="fw-bold"
+                                                >Class Mode</span
+                                            >
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div
-                            class="heatmap-section bg-white px-3 py-2 flex-fill"
+                            class="hpram-section bg-white mb-2 px-3 py-2 rounded-3"
                         >
                             <div class="fw-bold">Hyperparameter View</div>
-                            <div id="heatmap"></div>
+                            <div id="hpramView"></div>
+                        </div>
+                        <div
+                            class="fsView-section bg-white px-3 py-2 flex-fill rounded-3"
+                        >
+                            <div class="fw-bold">Frequent Subgraph View</div>
+                            <div id="fsView"></div>
                         </div>
                     </div>
                 </div>

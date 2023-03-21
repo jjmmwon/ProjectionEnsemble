@@ -1,5 +1,6 @@
 body {
     height: 100vh;
+    font-family: 'Open Sans', 'sans-serif';
 }
 
 .container {
@@ -37,12 +38,29 @@ body {
     justify-content: center;
     text-align: center;
 }
-.fsView-section {
-    height: 450px;
+
+.dual, .fsOnly, .classOnly {
+    width:200px;
+}
+
+#modeBtns{
+    width:100%;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+.hpram-section{
+    height:250px;
 }
 
 .heatmap-cell {
     cursor: pointer;
+}
+
+i{
+    cursor:pointer;
 }
 
 .nopadding {
