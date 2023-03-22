@@ -20,7 +20,7 @@ class Scatterplot {
         };
         this.width = width - this.margin.left - this.margin.right;
         this.height = height - this.margin.top - this.margin.bottom;
-        this.method = method.substr(0, 4) == 'tsne' ? 't-SNE' : 'UMAP';
+        this.method = method.substr(0, 4) === 'tsne' ? 't-SNE' : 'UMAP';
         this.mode = 'dualMode';
         this.hyperparameters = hyperparameters;
         this.brushedSet = brushedSet;
@@ -151,8 +151,8 @@ class Scatterplot {
                 );
             })
             .attr('fill', (d) => 'gray')
-            .attr('opacity', 0.7)
-            .attr('r', 2);
+            .attr('opacity', 0.8)
+            .attr('r', 1.5);
 
         // this.container.call(this.brush);
 
@@ -198,14 +198,22 @@ class Scatterplot {
             .attr('opacity', 0.8);
     }
 
-    mouseOver(circleIndices) {
-        this.circles
-            .filter((d) => circleIndices.includes(d.id))
-            .attr('r', 4)
-            .attr('opacity', 0.8);
+    highlightFS(target) {
+        this.contours
+            .transition()
+            .attr('stroke-opacity', (d, i) => (i === target ? 1 : 0.1))
+            .attr('fill-opacity', (d, i) => (i === target ? 0.5 : 0.1));
     }
+    highlightClass(target) {
+        this.circles.attr('r', (d) =>
+            d.label === this.labelInfo.labelSet[target] ? 3 : 1.5
+        );
+    }
+
     mouseOut() {
-        this.circles.attr('r', 2).attr('opacity', 0.7);
+        this.contours.attr('stroke-opacity', 0.8).attr('fill-opacity', 0.5);
+
+        this.circles.attr('r', 1.5);
     }
 
     drawContour() {
@@ -220,26 +228,27 @@ class Scatterplot {
 
         this.contours = this.contourG
             .selectAll('path')
-            .data(this.contourData)
+            .data(this.contourData.slice(0, 10))
             .join('path');
 
         this.contours
             .attr('d', (d) => line(d))
             .attr('fill', (_, i) =>
-                this.textureScale
-                    .getTexture(i % this.textureScale.length())
-                    .url()
+                i < this.textureScale.length()
+                    ? this.textureScale.getTexture(i).url()
+                    : 'none'
             )
             .attr('id', (_, i) => `FS${i}`)
             .attr('fill-opacity', 0.5)
             .attr('stroke', 'black')
             .attr('stroke-opacity', 0.8)
             .on('mouseover', (d) => {
-                let id = +d3.select(d.target).attr('id').slice(2);
-                this.hoverEvent('mouseOver', this.subgraphs[id]);
+                let fsID = +d3.select(d.target).attr('id').slice(2);
+                this.hoverEvent('fsHover', fsID);
             })
-            .on('mouseout', (_) => {
-                this.hoverEvent('mouseOut');
+            .on('mouseout', (d) => {
+                let fsID = +d3.select(d.target).attr('id').slice(2);
+                this.hoverEvent('mouseOut', fsID);
             });
     }
 
@@ -253,10 +262,10 @@ class Scatterplot {
 
         this.updateHyperparams();
 
-        if (this.mode == 'dualMode') {
+        if (this.mode === 'dualMode') {
             this.circles.attr('fill', (d) => this.labelColorScale(d.label));
             this.drawContour();
-        } else if (this.mode == 'fsMode') {
+        } else if (this.mode === 'fsMode') {
             this.removeContour();
             this.circles.attr('fill', d3.schemeCategory10[7]);
             this.subgraphs.forEach((fs, i) => {

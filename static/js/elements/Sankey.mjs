@@ -8,12 +8,13 @@ class Sankey {
         this.height = height - this.margin.top - this.margin.bottom;
     }
 
-    initialize(fsmResult, labelInfo, textureScale) {
+    initialize(fsmResult, labelInfo, textureScale, hoverEvent) {
         this.fsmResult = fsmResult;
         this.labelSet = labelInfo.labelSet;
         this.labels = labelInfo.labels;
         this.labelLength = this.labelSet.length;
         this.textureScale = textureScale;
+        this.hoverEvent = hoverEvent;
 
         this.div = d3.select(this.id).append('div');
 
@@ -104,8 +105,8 @@ class Sankey {
         });
 
         this.container.selectAll('g').remove();
-        this.node = this.container.append('g');
-        this.link = this.container.append('g');
+        this.nodeG = this.container.append('g');
+        this.linkG = this.container.append('g');
 
         this.classLegend = this.container.append('g');
         this.legendRect = this.classLegend.append('g');
@@ -115,7 +116,19 @@ class Sankey {
             this.svg.call(t);
         });
 
-        this.node
+        this.link = this.linkG
+            .selectAll('.link')
+            .data(links)
+            .join('g')
+            .append('path')
+            .attr('d', d3.sankeyLinkHorizontal())
+            .attr('fill', 'none')
+            .attr('stroke-opacity', 0.1)
+            .attr('stroke', '#000')
+            .attr('stroke-width', ({ width }) => Math.max(2, width))
+            .sort((a, b) => b.dy - a.dy);
+
+        this.node = this.nodeG
             .selectAll('rect')
             .data(nodes)
             .join('rect')
@@ -138,19 +151,17 @@ class Sankey {
             .attr('x', (d) => d.x0)
             .attr('y', (d) => d.y0)
             .attr('height', (d) => d.y1 - d.y0)
-            .attr('width', (d) => d.x1 - d.x0);
+            .attr('width', (d) => d.x1 - d.x0)
+            .on('mouseover', (_, d) => {
+                d.id >= this.labelLength
+                    ? this.hoverEvent('fsHover', d.id - this.labelLength)
+                    : this.hoverEvent('classHover', d.id);
+            })
+            .on('mouseout', () => {
+                this.hoverEvent('mouseOut');
+                this.link.transition().style('stroke-opacity', 0.1);
+            });
 
-        this.link
-            .selectAll('.link')
-            .data(links)
-            .join('g')
-            .append('path')
-            .attr('d', d3.sankeyLinkHorizontal())
-            .attr('fill', 'none')
-            .attr('stroke-opacity', 0.1)
-            .attr('stroke', '#000')
-            .attr('stroke-width', ({ width }) => Math.max(2, width))
-            .sort((a, b) => b.dy - a.dy);
         this.drawLegend();
     }
 
@@ -224,5 +235,24 @@ class Sankey {
             .attr('x', (_, i) => (i % 5) * Math.floor(this.width / 5) + 15)
             .attr('y', (_, i) => Math.floor(i / 5) * 20 + 10)
             .text((d) => d);
+    }
+
+    highlightFS(target) {
+        this.link.transition().style('stroke-opacity', (l) => {
+            return l.source.id === target + this.labelLength ||
+                l.target.id === target + this.labelLength
+                ? 0.4
+                : 0.1;
+        });
+    }
+
+    highlightClass(target) {
+        this.link.transition().style('stroke-opacity', (l) => {
+            return l.source.id === target || l.target.id === target ? 0.4 : 0.1;
+        });
+    }
+
+    mouseOut() {
+        this.link.transition().style('stroke-opacity', 0.1);
     }
 }

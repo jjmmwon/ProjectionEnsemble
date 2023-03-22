@@ -1,32 +1,16 @@
 body {
     height: 100vh;
     font-family: 'Open Sans', 'sans-serif';
+    font-size: 18px;
 }
 
 .container {
     width: 100%;
     max-width: 100%;
-    font-size: 16px;
 }
 
-#perp,
-#iter,
-#lr,
-#nNeighbors,
-#minDist {
-    width: 60px;
-    text-align: center;
-    font-size: 13px;
-}
-
-#addBtn {
-    width: 50px;
-    height: 30px;
-    font-size: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
+#dataTitle, #method{
+    width:200px;
 }
 
 #runBtn {
