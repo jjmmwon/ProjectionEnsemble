@@ -207,7 +207,7 @@ textureScale = {
             .background('rgb(120,120,120)'),
     ],
 
-    reaminders: textures
+    remainders: textures
         .lines()
         .orientation('vertical', 'horizontal')
         .size(4)
@@ -222,7 +222,7 @@ textureScale = {
     },
     callTextures(f) {
         this.textures.forEach((t) => f(t));
-        f(this.reaminders);
+        f(this.remainders);
     },
 };
 
@@ -233,12 +233,17 @@ async function ensembleDR(title, method) {
 
     await d3
         .json(
-            `http://localhost:50008/v3/preset?title=${title}&method=${method}`
+            `http://localhost:50008/v1/preset?title=${title}&method=${method}`
         )
         .then((data) => {
             console.log(data);
             drResult = data.dr_results;
             fsmResult = data.fsm_results;
+
+            drResult.forEach((dr) => {
+                dr.embedding = Papa.parse(dr.embedding, { header: true }).data;
+            });
+            console.log(drResult);
 
             labelInfo.add(drResult[0].embedding.map((e) => e.l));
 
@@ -263,19 +268,6 @@ function reset() {
     projectionsView.reset();
     realtionView.reset();
     hyperparameterView.reset();
-}
-
-function linkViews(eventType, target) {
-    if (eventType == 'fsHover') {
-        projectionsView.highlightFS(target);
-        realtionView.highlightFS(target);
-    } else if (eventType == 'classHover') {
-        projectionsView.highlightClass(target);
-        realtionView.highlightClass(target);
-    } else if (eventType == 'mouseOut') {
-        projectionsView.mouseOut();
-        realtionView.mouseOut();
-    }
 }
 
 export { ensembleDR, eventHandlers };

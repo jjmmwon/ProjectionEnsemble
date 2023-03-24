@@ -50,7 +50,7 @@ class Scatterplot {
                   .append('div')
                   .attr('class', 'badge rounded-pill text-bg-primary ms-2 py-1')
                   .style('font-size', '12px')
-                  .text(`${this.hyperparameters['initialization']}`)
+                  .text(`${this.hyperparameters['init']}`)
             : null;
 
         this.svg = this.div.append('svg');
@@ -64,6 +64,8 @@ class Scatterplot {
             'transform',
             `translate(${this.margin.left}, ${this.margin.top})`
         );
+
+        this.contourG = this.container.append('g');
 
         this.brush = d3
             .brush()
@@ -88,16 +90,14 @@ class Scatterplot {
         this.labelInfo = labelInfo;
         this.fsmResult = fsmResult;
 
-        console.log(this.fsmResult);
-
-        let pMax = this.embedding[0]['x'],
-            pMin = this.embedding[0]['x'];
+        let pMax = Number(this.embedding[0]['x']),
+            pMin = Number(this.embedding[0]['x']);
 
         this.embedding.forEach((d) => {
-            pMax = pMax < d.x ? d.x : pMax;
-            pMin = pMin > d.x ? d.x : pMin;
-            pMax = pMax < d.y ? d.y : pMax;
-            pMin = pMin > d.y ? d.y : pMin;
+            pMax = pMax < Number(d.x) ? Number(d.x) : pMax;
+            pMin = pMin > Number(d.x) ? Number(d.x) : pMin;
+            pMax = pMax < Number(d.y) ? Number(d.y) : pMax;
+            pMin = pMin > Number(d.y) ? Number(d.y) : pMin;
         });
 
         // set scales
@@ -204,8 +204,7 @@ class Scatterplot {
     }
 
     drawContour() {
-        this.contourG?.remove();
-        this.contourG = this.container.append('g');
+        this.contourG.selectAll('path').remove();
 
         const line = d3
             .line()
@@ -214,7 +213,7 @@ class Scatterplot {
 
         this.contours = this.contourG
             .selectAll('path')
-            .data(this.contourData.slice(0, 10))
+            .data(this.contourData)
             .join('path');
 
         this.contours
@@ -222,7 +221,7 @@ class Scatterplot {
             .attr('fill', (_, i) =>
                 i < this.textureScale.length()
                     ? this.textureScale.getTexture(i).url()
-                    : 'none'
+                    : 'rgb(240,240,240)'
             )
             .attr('id', (_, i) => `FS${i}`)
             .attr('fill-opacity', 0.5)
@@ -239,18 +238,17 @@ class Scatterplot {
     }
 
     updateView(mode) {
+        this.mode = mode ? mode : this.mode;
         this.updateHyperparams();
 
-        if (mode === 'dualMode') {
-            this.mode === 'fsMode'
-                ? this.circles.attr('fill', (d) => this.labelColorScale(d.l))
-                : null;
+        if (this.mode == 'dualMode') {
             this.drawContour();
-        } else if (mode === 'fsMode') {
+            this.circles.attr('fill', (d) => this.labelColorScale(d.l));
+        } else if (this.mode == 'fsMode') {
             this.drawContour();
             this.circles.attr('fill', d3.schemeTableau10[9]);
         } else {
-            this.contourG?.remove();
+            this.contourG.selectAll('path').remove();
             this.circles.attr('fill', (d) => this.labelColorScale(d.l));
         }
     }

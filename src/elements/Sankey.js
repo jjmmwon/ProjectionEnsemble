@@ -123,11 +123,11 @@ class Sankey {
                     d.id < this.labelLength + this.textureScale.length() &&
                     d.id < nodes.length - 1
                 ) {
-                    return this.textureScale.getTexture(
-                        d.id - this.labelLength
-                    );
+                    return this.textureScale
+                        .getTexture(d.id - this.labelLength)
+                        .url();
                 } else if (d.id < nodes.length - 1) {
-                    return this.textureScale.getTexture(-1);
+                    return this.textureScale.getTexture(-1).url();
                 } else {
                     return 'gray';
                 }
