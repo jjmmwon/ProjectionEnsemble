@@ -1,3 +1,5 @@
+import * as d3 from 'd3';
+
 export { Heatmap };
 
 class Heatmap {
@@ -5,18 +7,17 @@ class Heatmap {
         this.id = id;
         this.margin = {
             top: 20,
-            right: 20,
-            bottom: 50,
-            left: 40,
+            right: 10,
+            bottom: 25,
+            left: 30,
         };
         this.width = width - this.margin.left - this.margin.right;
         this.height = height - this.margin.top - this.margin.bottom;
-        this.k = [5, 7, 8, 9, 10];
-        this.minSupport = [6, 7, 8, 9, 10];
-        this.handlers = {};
+        this.k = [5, 6, 7, 8, 9, 10];
+        this.minSupport = [10, 9, 8, 7, 6];
     }
 
-    initialize() {
+    initialize(eventHandlers) {
         this.div = d3
             .select(this.id)
             .append('div')
@@ -29,6 +30,7 @@ class Heatmap {
         this.yAxisLabel = this.svg.append('text');
         this.cells = this.container.append('g');
         this.cellsText = this.container.append('g');
+        this.eventHandlers = eventHandlers;
 
         this.svg
             .attr('width', this.width + this.margin.left + this.margin.right)
@@ -41,15 +43,15 @@ class Heatmap {
 
         this.xScale = d3
             .scaleBand()
-            .domain(this.minSupport)
+            .domain(this.k)
             .range([0, this.width])
-            .padding(0.01);
+            .padding(0.03);
 
         this.yScale = d3
             .scaleBand()
-            .domain(this.k)
+            .domain(this.minSupport)
             .range([0, this.height])
-            .padding(0.01);
+            .padding(0.03);
 
         this.colorScale = d3.scaleLinear().range([0, 1]);
 
@@ -72,48 +74,46 @@ class Heatmap {
         this.xAxisLabel
             .attr(
                 'transform',
-                `translate(${this.width / 2 + this.margin.left}, ${
-                    this.height + this.margin.top + 25
+                `translate(${this.width + this.margin.left + 5}, ${
+                    this.height + this.margin.top + 13
                 })`
             )
             .attr('text-anchor', 'middle')
             .attr('alignment-baseline', 'middle')
-            .text('min_support')
-            .attr('font-size', '12px')
+            .text('k')
+            .attr('font-size', '13px')
             .attr('font-weight', 'bold');
 
         this.yAxisLabel
-            .attr(
-                'transform',
-                `translate(15, ${this.height / 2 + this.margin.top})`
-            )
+            .attr('transform', `translate(25, 10)`)
             .attr('text-anchor', 'middle')
             .attr('alignment-baseline', 'middle')
-            .text('k')
-            .attr('font-size', '12px')
+            .text('min sup')
+            .attr('font-size', '13px')
             .attr('font-weight', 'bold');
 
-        this.kBand = this.k.map((d) => this.yScale(d));
-        this.msBand = this.minSupport.map((d) => this.xScale(d));
+        this.kBand = this.k.map((d) => this.xScale(d));
+        this.msBand = this.minSupport.map((d) => this.yScale(d));
 
         return this;
     }
 
     update(fsmResult) {
-        this.maxSubgraphsLength = d3.max(fsmResult, (d) => d.subgraphs.length);
+        this.maxSubgraphsLength = d3.max(fsmResult, (d) => d.subgs.length);
         this.colorScale.domain([1, Math.ceil(this.maxSubgraphsLength * 1.5)]);
+        console.log(this.eventHandlers);
 
         this.cells
             .selectAll('rect')
             .data(fsmResult)
             .join('rect')
-            .attr('class', 'heatmap-cell')
-            .attr('x', (d) => this.xScale(d['min_support']))
-            .attr('y', (d) => this.yScale(d['k']))
+            .attr('class', (d) => `heatmap-cell k${d.k}ms${d.ms}`)
+            .attr('x', (d) => this.xScale(d.k))
+            .attr('y', (d) => this.yScale(d.ms))
             .attr('width', this.xScale.bandwidth())
             .attr('height', this.yScale.bandwidth())
             .style('fill', (d) =>
-                d3.interpolateYlGn(this.colorScale(d.subgraphs.length))
+                d3.interpolateYlGn(this.colorScale(d.subgs.length))
             )
             .on('click', (event) => this.clickCell(event));
 
@@ -121,46 +121,54 @@ class Heatmap {
             .selectAll('text')
             .data(fsmResult)
             .join('text')
-            .attr(
-                'x',
-                (d) =>
-                    this.xScale(d['min_support']) + this.xScale.bandwidth() / 2
-            )
-            .attr('y', (d) => this.yScale(d['k']) + this.yScale.bandwidth() / 2)
+            .attr('class', 'heatmap-cell')
+            .attr('x', (d) => this.xScale(d.k) + this.xScale.bandwidth() / 2)
+            .attr('y', (d) => this.yScale(d.ms) + this.yScale.bandwidth() / 2)
             .style('text-anchor', 'middle')
             .style('alignment-baseline', 'middle')
-            .style('font-size', '10px')
+            .style('font-size', '12px')
+            .style('font-weight', 'bold')
             .style('fill', 'black')
-            .text((d) => d.subgraphs.length);
+            .text((d) => d.subgs.length)
+            .on('click', (event) => this.clickCell(event));
 
         return this;
-    }
-
-    on(eventType, handler) {
-        this.handlers[eventType] = handler;
     }
 
     clickCell(event) {
         let [x, y] = d3.pointer(event);
 
-        if (this.handlers?.click) {
-            this.handlers.click(this.invertX(x), this.invertY(y));
-        }
+        this.eventHandlers.clickCell({
+            k: this.invertX(x),
+            ms: this.invertY(y),
+        });
+    }
+
+    highlightCell() {
+        d3.select('.highlight-cell').classed('highlight-cell', false);
+        d3.select(
+            '.k' +
+                d3.select('#kRange').property('value') +
+                'ms' +
+                d3.select('#msRange').property('value')
+        ).classed('highlight-cell', true);
+
+        return this;
     }
 
     invertX(x) {
-        let xVal = this.minSupport[this.minSupport.length - 1];
-        this.msBand.forEach((d, i) => {
-            if (xVal == this.minSupport[this.minSupport.length - 1])
-                xVal = x < d ? this.minSupport[i - 1] : xVal;
+        let xVal = this.k[this.k.length - 1];
+        this.kBand.forEach((d, i) => {
+            if (xVal == this.k[this.k.length - 1])
+                xVal = x < d ? this.k[i - 1] : xVal;
         });
         return xVal;
     }
     invertY(y) {
-        let yVal = this.k[this.k.length - 1];
-        this.kBand.forEach((d, i) => {
-            if (yVal == this.k[this.k.length - 1])
-                yVal = y < d ? this.k[i - 1] : yVal;
+        let yVal = this.minSupport[this.minSupport.length - 1];
+        this.msBand.forEach((d, i) => {
+            if (yVal == this.minSupport[this.minSupport.length - 1])
+                yVal = y < d ? this.minSupport[i - 1] : yVal;
         });
         return yVal;
     }

@@ -1,3 +1,6 @@
+import * as d3 from 'd3';
+import { sankey, sankeyJustify, sankeyLinkHorizontal } from 'd3-sankey';
+
 export { Sankey };
 
 class Sankey {
@@ -8,28 +11,15 @@ class Sankey {
         this.height = height - this.margin.top - this.margin.bottom;
     }
 
-    initialize(fsmResult, labelInfo, textureScale, hoverEvent) {
+    initialize(fsmResult, labelInfo, textureScale, eventHandlers) {
         this.fsmResult = fsmResult;
         this.labelSet = labelInfo.labelSet;
         this.labels = labelInfo.labels;
         this.labelLength = this.labelSet.length;
         this.textureScale = textureScale;
-        this.hoverEvent = hoverEvent;
+        this.eventHandlers = eventHandlers;
 
         this.div = d3.select(this.id).append('div');
-
-        // Draw Header
-        this.header = this.div
-            .append('div')
-            .attr('class', 'd-flex justify-content-center my-1');
-        this.kSpan = this.header
-            .append('span')
-            .attr('class', 'badge rounded-pill bg-primary mx-2')
-            .style('font-family', 'var(--bs-body-font-family)');
-        this.msSpan = this.header
-            .append('span')
-            .attr('class', 'badge rounded-pill bg-success mx-2')
-            .style('font-family', 'var(--bs-body-font-family)');
 
         this.svg = this.div
             .append('svg')
@@ -62,25 +52,24 @@ class Sankey {
                 `translate(${this.margin.left},${this.margin.top})`
             );
 
+        this.textureScale.callTextures((t) => {
+            this.svg.call(t);
+        });
+
         return this;
     }
 
     update() {
-        this.k = d3.select('#kSelector').property('value');
-        this.min_support = d3.select('#msSelector').property('value');
+        this.k = d3.select('#kRange').property('value');
+        this.minSupport = d3.select('#msRange').property('value');
 
-        this.labelColorScale = d3.scaleOrdinal([], d3.schemeCategory10);
+        this.labelColorScale = d3.scaleOrdinal([], d3.schemeTableau10);
 
         this.fsmResult.forEach((d) => {
-            if (d.k == this.k && d.min_support == this.min_support) {
-                this.subgraphs = d.subgraphs;
+            if (d.k == this.k && d.ms == this.minSupport) {
+                this.subgraphs = d.subgs;
             }
         });
-
-        this.kSpan.text(`k: ${this.k}`).attr('font-size', '20px');
-        this.msSpan
-            .text(`min_support: ${this.min_support}`)
-            .attr('font-size', '20px');
 
         this.makeGraph();
 
@@ -89,10 +78,9 @@ class Sankey {
 
         const N = d3.map(nodes, (d) => d.id);
 
-        d3
-            .sankey()
+        sankey()
             .nodeId((_, i) => N[i])
-            .nodeAlign(d3.sankeyJustify)
+            .nodeAlign(sankeyJustify)
             .nodeSort(null)
             .nodeWidth(15)
             .nodePadding(5)
@@ -112,16 +100,12 @@ class Sankey {
         this.legendRect = this.classLegend.append('g');
         this.legendText = this.classLegend.append('g');
 
-        this.textureScale.callTextures((t) => {
-            this.svg.call(t);
-        });
-
         this.link = this.linkG
             .selectAll('.link')
             .data(links)
             .join('g')
             .append('path')
-            .attr('d', d3.sankeyLinkHorizontal())
+            .attr('d', sankeyLinkHorizontal())
             .attr('fill', 'none')
             .attr('stroke-opacity', 0.1)
             .attr('stroke', '#000')
@@ -133,17 +117,20 @@ class Sankey {
             .data(nodes)
             .join('rect')
             .style('fill', (d) => {
-                return d.id < this.labelLength
-                    ? this.labelColorScale(d.id)
-                    : d.id < this.labelLength + this.textureScale.length() &&
-                      d.id < nodes.length - 1
-                    ? this.textureScale
-                          .getTexture(
-                              (d.id - this.labelLength) %
-                                  this.textureScale.length()
-                          )
-                          .url()
-                    : 'gray';
+                if (d.id < this.labelLength) {
+                    return this.labelColorScale(d.id);
+                } else if (
+                    d.id < this.labelLength + this.textureScale.length() &&
+                    d.id < nodes.length - 1
+                ) {
+                    return this.textureScale.getTexture(
+                        d.id - this.labelLength
+                    );
+                } else if (d.id < nodes.length - 1) {
+                    return this.textureScale.getTexture(-1);
+                } else {
+                    return 'gray';
+                }
             })
             .attr('stroke', (d) => {
                 return d.id < this.labelLength ? 'none' : 'black';
@@ -154,12 +141,15 @@ class Sankey {
             .attr('width', (d) => d.x1 - d.x0)
             .on('mouseover', (_, d) => {
                 d.id >= this.labelLength
-                    ? this.hoverEvent('fsHover', d.id - this.labelLength)
-                    : this.hoverEvent('classHover', d.id);
+                    ? this.eventHandlers.linkViews(
+                          'fsHover',
+                          d.id - this.labelLength
+                      )
+                    : this.eventHandlers.linkViews('classHover', d.id);
             })
             .on('mouseout', () => {
-                this.hoverEvent('mouseOut');
-                this.link.transition().style('stroke-opacity', 0.1);
+                this.eventHandlers.linkViews('mouseOut');
+                this.link.style('stroke-opacity', 0.1);
             });
 
         this.drawLegend();
@@ -238,7 +228,7 @@ class Sankey {
     }
 
     highlightFS(target) {
-        this.link.transition().style('stroke-opacity', (l) => {
+        this.link.style('stroke-opacity', (l) => {
             return l.source.id === target + this.labelLength ||
                 l.target.id === target + this.labelLength
                 ? 0.4
@@ -247,12 +237,12 @@ class Sankey {
     }
 
     highlightClass(target) {
-        this.link.transition().style('stroke-opacity', (l) => {
+        this.link.style('stroke-opacity', (l) => {
             return l.source.id === target || l.target.id === target ? 0.4 : 0.1;
         });
     }
 
     mouseOut() {
-        this.link.transition().style('stroke-opacity', 0.1);
+        this.link.style('stroke-opacity', 0.1);
     }
 }

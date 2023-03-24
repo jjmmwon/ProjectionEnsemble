@@ -1,3 +1,5 @@
+import * as d3 from 'd3';
+
 export { Scatterplot };
 class Scatterplot {
     constructor(
@@ -8,7 +10,8 @@ class Scatterplot {
         method,
         hyperparameters,
         brushedSet,
-        hoverEvent
+        textureScale,
+        eventHandlers
     ) {
         this.id = id;
         this.div = d3.select(div).append('div');
@@ -24,7 +27,8 @@ class Scatterplot {
         this.mode = 'dualMode';
         this.hyperparameters = hyperparameters;
         this.brushedSet = brushedSet;
-        this.hoverEvent = hoverEvent;
+        this.textureScale = textureScale;
+        this.eventHandlers = eventHandlers;
         this.handlers = {};
     }
 
@@ -34,33 +38,20 @@ class Scatterplot {
             'scatterplot bg-white p-1 mb-2 mx-1 rounded-3 justify-content-center'
         );
 
-        this.header = this.div
-            .append('div')
-            .attr('class', 'd-flex justify-content-between mt-1');
+        this.header = this.div.append('div').attr('class', 'd-flex my-1');
 
         this.header
             .append('div')
-            .attr('class', 'fs-6 fw-bold ms-2 mb-1')
+            .attr('class', 'fs-6 fw-bold mx-2')
             .text(`${this.method} ${this.id + 1}`);
 
-        this.hparams = {
-            perplexity: 'perp',
-            initialization: 'init',
-            learning_rate: 'lr',
-            n_neighbors: 'n_neighbors',
-            min_dist: 'min_dist',
-        };
-
-        this.hpramDiv
-            .selectAll('span')
-            .data(d3.keys(this.hyperparameters))
-            .join('span')
-            .attr(
-                'class',
-                (_, i) =>
-                    `badge rounded-pill bg-${this.badgeColor[i]} text-light`
-            )
-            .text((d) => `${this.hparams[d]}: ${this.hyperparameters[d]}`);
+        this.method == 't-SNE'
+            ? this.header
+                  .append('div')
+                  .attr('class', 'badge rounded-pill text-bg-primary ms-2 py-1')
+                  .style('font-size', '12px')
+                  .text(`${this.hyperparameters['initialization']}`)
+            : null;
 
         this.svg = this.div.append('svg');
         this.container = this.svg.append('g');
@@ -74,7 +65,6 @@ class Scatterplot {
             `translate(${this.margin.left}, ${this.margin.top})`
         );
 
-        this.contourG = this.container.append('g');
         this.brush = d3
             .brush()
             .extent([
@@ -85,15 +75,20 @@ class Scatterplot {
                 if (!event.sourceEvent) return;
                 this.brushCircles(event);
             });
+
+        this.textureScale.callTextures((t) => {
+            this.svg.call(t);
+        });
         return this;
     }
 
     //update event
-    embedData(embedding, labelInfo, fsmResult, textureScale) {
+    embedData(embedding, labelInfo, fsmResult) {
         this.embedding = embedding;
         this.labelInfo = labelInfo;
         this.fsmResult = fsmResult;
-        this.textureScale = textureScale;
+
+        console.log(this.fsmResult);
 
         let pMax = this.embedding[0]['x'],
             pMin = this.embedding[0]['x'];
@@ -143,7 +138,7 @@ class Scatterplot {
                     ')'
                 );
             })
-            .attr('fill', (d) => 'gray')
+            .attr('fill', (_) => 'gray')
             .attr('opacity', 0.8)
             .attr('r', 1.5);
 
@@ -193,13 +188,12 @@ class Scatterplot {
 
     highlightFS(target) {
         this.contours
-            .transition()
-            .attr('stroke-opacity', (d, i) => (i === target ? 1 : 0.1))
-            .attr('fill-opacity', (d, i) => (i === target ? 0.5 : 0.1));
+            .attr('stroke-opacity', (_, i) => (i === target ? 1 : 0.1))
+            .attr('fill-opacity', (_, i) => (i === target ? 0.5 : 0.1));
     }
     highlightClass(target) {
         this.circles.attr('r', (d) =>
-            d.label === this.labelInfo.labelSet[target] ? 3 : 1.5
+            d.l === this.labelInfo.labelSet[target] ? 3 : 1.5
         );
     }
 
@@ -210,14 +204,13 @@ class Scatterplot {
     }
 
     drawContour() {
+        this.contourG?.remove();
+        this.contourG = this.container.append('g');
+
         const line = d3
             .line()
             .x((d) => this.xScale(d[0]))
             .y((d) => this.yScale(d[1]));
-
-        this.textureScale.callTextures((t) => {
-            this.svg.call(t);
-        });
 
         this.contours = this.contourG
             .selectAll('path')
@@ -237,43 +230,39 @@ class Scatterplot {
             .attr('stroke-opacity', 0.8)
             .on('mouseover', (d) => {
                 let fsID = +d3.select(d.target).attr('id').slice(2);
-                this.hoverEvent('fsHover', fsID);
+                this.eventHandlers.linkViews('fsHover', fsID);
             })
             .on('mouseout', (d) => {
                 let fsID = +d3.select(d.target).attr('id').slice(2);
-                this.hoverEvent('mouseOut', fsID);
+                this.eventHandlers.linkViews('mouseOut', fsID);
             });
     }
 
-    removeContour() {
-        this.contourG.remove();
-        this.contourG = this.container.append('g');
-    }
-
     updateView(mode) {
-        this.mode = mode ? mode : this.mode;
-
         this.updateHyperparams();
 
-        if (this.mode === 'dualMode') {
-            this.circles.attr('fill', (d) => this.labelColorScale(d.label));
+        if (mode === 'dualMode') {
+            this.mode === 'fsMode'
+                ? this.circles.attr('fill', (d) => this.labelColorScale(d.l))
+                : null;
             this.drawContour();
-        } else if (this.mode === 'fsMode') {
-            this.removeContour();
+        } else if (mode === 'fsMode') {
+            this.drawContour();
+            this.circles.attr('fill', d3.schemeTableau10[9]);
         } else {
-            this.removeContour();
-            this.circles.attr('fill', (d) => this.labelColorScale(d.label));
+            this.contourG?.remove();
+            this.circles.attr('fill', (d) => this.labelColorScale(d.l));
         }
     }
 
     updateHyperparams() {
-        this.k = d3.select('#kSelector').property('value');
-        this.minSupport = d3.select('#msSelector').property('value');
+        this.k = d3.select('#kRange').property('value');
+        this.minSupport = d3.select('#msRange').property('value');
 
         this.fsmResult.forEach((fs) => {
-            if (fs.min_support == this.minSupport && fs.k == this.k) {
-                this.contourData = fs.contour_coords[this.id];
-                this.subgraphs = fs.subgraphs;
+            if (fs.ms == this.minSupport && fs.k == this.k) {
+                this.contourData = fs.coords[this.id];
+                this.subgraphs = fs.subgs;
             }
         });
     }

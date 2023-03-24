@@ -50,4 +50,5 @@ class EnsembleDR:
     def fit(self, embeddings: List[np.ndarray]) -> List[FSMResult]:
         graph_dicts = generate_graphs(embeddings)
 
+        print("get fsm results")
         return get_fsm_results(graph_dicts, embeddings)

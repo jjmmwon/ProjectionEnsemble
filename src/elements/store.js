@@ -1,8 +1,18 @@
-import { Heatmap } from './Heatmap.mjs';
-import { Sankey } from './Sankey.mjs';
-import { Scatterplot } from './Scatterplot.mjs';
+import { Heatmap } from './Heatmap.js';
+import { Sankey } from './Sankey.js';
+import { Scatterplot } from './Scatterplot.js';
+import * as d3 from 'd3';
+import textures from 'textures';
+import Papa from 'papaparse';
 
-let embeddingView = {
+let projectionsView,
+    realtionView,
+    hyperparameterView,
+    eventHandlers,
+    labelInfo,
+    textureScale;
+
+projectionsView = {
     scatterplots: [],
     brushedSet: new Set(),
 
@@ -10,12 +20,13 @@ let embeddingView = {
         let sc = new Scatterplot(
             this.scatterplots.length,
             '.scatterplot-section',
-            295,
-            295,
+            285,
+            285,
             method,
             hyperparams,
             this.brushedSet,
-            linkViews
+            textureScale,
+            eventHandlers
         );
 
         sc.initialize()
@@ -27,7 +38,7 @@ let embeddingView = {
             //         if (sc !== sc2) sc2.hideBrush();
             //     });
             // })
-            .embedData(embedding, labelInfo, fsmResult, textureScale)
+            .embedData(embedding, labelInfo, fsmResult)
             .updateView('dualMode');
 
         this.scatterplots.push(sc);
@@ -84,12 +95,12 @@ let embeddingView = {
     },
 };
 
-let fsView = {
+realtionView = {
     sankey: new Sankey('#fsView', 280, 380),
 
     add(data, labelInfo, textureScale) {
         this.sankey
-            .initialize(data, labelInfo, textureScale, linkViews)
+            .initialize(data, labelInfo, textureScale, eventHandlers)
             .update();
     },
     updateView() {
@@ -113,19 +124,18 @@ let fsView = {
     },
 };
 
-let hyperparameterView = {
-    heatmap: new Heatmap('#hpramView', 220, 220),
+hyperparameterView = {
+    heatmap: new Heatmap('#hpramView', 240, 190),
 
     add(fsmResult) {
         this.heatmap
-            .initialize()
+            .initialize(eventHandlers)
             .update(fsmResult)
-            .on('click', (ms, k) => {
-                d3.select('#kSelector').property('value', k);
-                d3.select('#msSelector').property('value', ms);
-                embeddingView.updateView();
-                fsView.updateView();
-            });
+            .highlightCell();
+    },
+
+    updateView() {
+        this.heatmap.highlightCell();
     },
 
     reset() {
@@ -133,24 +143,53 @@ let hyperparameterView = {
     },
 };
 
-let labelInfo = {
+eventHandlers = {
+    clickCell: function (args) {
+        d3.select('#kRange').property('value', args.k);
+        d3.select('#msRange').property('value', args.ms);
+        this.updateViews();
+    },
+
+    updateViews: function (mode) {
+        projectionsView.updateView(mode);
+        realtionView.updateView();
+        hyperparameterView.updateView();
+    },
+
+    linkViews: function (eventType, target) {
+        if (eventType == 'fsHover') {
+            projectionsView.highlightFS(target);
+            realtionView.highlightFS(target);
+        } else if (eventType == 'classHover') {
+            projectionsView.highlightClass(target);
+            realtionView.highlightClass(target);
+        } else if (eventType == 'mouseOut') {
+            projectionsView.mouseOut();
+            realtionView.mouseOut();
+        }
+    },
+};
+
+labelInfo = {
     labelSet: [],
     labels: [],
+
     add(labels) {
         this.labels = labels;
         this.labelSet = [...new Set(labels)];
     },
 };
 
-let textureScale = {
+textureScale = {
     textures: [
-        textures.lines().thicker(),
-        textures.lines().orientation('vertical').size(6).strokeWidth(1.5),
-        textures.lines().orientation('horizontal').size(7).strokeWidth(2),
         textures.paths().d('crosses').thicker(),
         textures.paths().d('waves').thicker(),
         textures.paths().d('caps').thicker(),
         textures.paths().d('squares').thicker(),
+
+        textures.lines().thicker(),
+        textures.lines().orientation('vertical').size(6).strokeWidth(1.5),
+        textures.lines().orientation('horizontal').size(7).strokeWidth(2),
         textures.lines().orientation('4/8').size(8).strokeWidth(3),
         textures
             .lines()
@@ -168,14 +207,22 @@ let textureScale = {
             .background('rgb(120,120,120)'),
     ],
 
+    reaminders: textures
+        .lines()
+        .orientation('vertical', 'horizontal')
+        .size(4)
+        .strokeWidth(1)
+        .shapeRendering('crispEdges'),
+
     getTexture(i) {
-        return this.textures[i];
+        return i == -1 ? this.remainders : this.textures[i];
     },
     length() {
         return this.textures.length;
     },
     callTextures(f) {
         this.textures.forEach((t) => f(t));
+        f(this.reaminders);
     },
 };
 
@@ -184,52 +231,51 @@ async function ensembleDR(title, method) {
 
     reset();
 
-    await d3.json(`/v1/preset?title=${title}&method=${method}`).then((data) => {
-        console.log(data);
-        drResult = data.dr_results;
-        fsmResult = data.fsm_results;
+    await d3
+        .json(
+            `http://localhost:50008/v3/preset?title=${title}&method=${method}`
+        )
+        .then((data) => {
+            console.log(data);
+            drResult = data.dr_results;
+            fsmResult = data.fsm_results;
 
-        labelInfo.add(drResult[0].embedding.map((e) => e.label));
+            labelInfo.add(drResult[0].embedding.map((e) => e.l));
 
-        drResult.forEach((e) => {
-            embeddingView.add(
-                method,
-                e.hyper_parameters,
-                e.embedding,
-                labelInfo,
-                fsmResult,
-                textureScale
-            );
+            drResult.forEach((e) => {
+                projectionsView.add(
+                    method,
+                    e.hprams,
+                    e.embedding,
+                    labelInfo,
+                    fsmResult,
+                    textureScale
+                );
+            });
+
+            realtionView.add(fsmResult, labelInfo, textureScale);
+            hyperparameterView.add(fsmResult);
         });
-
-        fsView.add(fsmResult, labelInfo, textureScale);
-        hyperparameterView.add(fsmResult);
-    });
-}
-
-function updateView(mode) {
-    embeddingView.updateView(mode);
-    fsView.updateView();
 }
 
 function reset() {
-    if (!embeddingView.length()) return;
-    embeddingView.reset();
-    fsView.reset();
+    if (!projectionsView.length()) return;
+    projectionsView.reset();
+    realtionView.reset();
     hyperparameterView.reset();
 }
 
 function linkViews(eventType, target) {
     if (eventType == 'fsHover') {
-        embeddingView.highlightFS(target);
-        fsView.highlightFS(target);
+        projectionsView.highlightFS(target);
+        realtionView.highlightFS(target);
     } else if (eventType == 'classHover') {
-        embeddingView.highlightClass(target);
-        fsView.highlightClass(target);
+        projectionsView.highlightClass(target);
+        realtionView.highlightClass(target);
     } else if (eventType == 'mouseOut') {
-        embeddingView.mouseOut();
-        fsView.mouseOut();
+        projectionsView.mouseOut();
+        realtionView.mouseOut();
     }
 }
 
-export { ensembleDR, updateView };
+export { ensembleDR, eventHandlers };

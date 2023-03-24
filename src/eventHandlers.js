@@ -1,7 +1,5 @@
-import {
-    ensembleDR as _ensembleDR,
-    updateView as updateView,
-} from './elements/store.mjs';
+import { ensembleDR as _ensembleDR, eventHandlers } from './elements/store.js';
+import * as d3 from 'd3';
 
 let title, method;
 
@@ -11,7 +9,6 @@ async function ensembleDR() {
     method = d3.select('#method').property('value');
     await _ensembleDR(title, method);
     loading(false);
-    foldConfigView(true);
 }
 
 function changeMode() {
@@ -29,36 +26,28 @@ function changeMode() {
                   .classed('btn-primary', false);
     });
 
-    updateView(mode);
+    eventHandlers.updateViews(mode);
 }
 
 function changeHyperparams() {
-    updateView();
+    d3.select(`#${d3.select(this).property('id')}Value`).text(
+        d3.select(this).property('value')
+    );
+
+    eventHandlers.updateViews();
 }
 
 function loading(isLoading) {
-    d3.select('#runBtn').selectAll('span').remove();
+    d3.select('#generateBtn').selectAll('span').remove();
 
     isLoading
         ? d3
-              .select('#runBtn')
+              .select('#generateBtn')
               .append('span')
               .attr('class', 'spinner-border spinner-border-sm')
               .attr('role', 'status')
               .attr('aria-hidden', 'true')
-        : d3.select('#runBtn').append('span').text('RUN');
+        : d3.select('#generateBtn').append('span').text('RUN');
 }
 
-function foldConfigView(fold) {
-    if (fold) {
-        d3.select('.fold').classed('d-none', true);
-        d3.select('.unfold').classed('d-none', false);
-        d3.select('.config-section').classed('d-none', true);
-    } else {
-        d3.select('.unfold').classed('d-none', true);
-        d3.select('.fold').classed('d-none', false);
-        d3.select('.config-section').classed('d-none', false);
-    }
-}
-
-export { ensembleDR, changeMode, foldConfigView, changeHyperparams };
+export { ensembleDR, changeMode, changeHyperparams };

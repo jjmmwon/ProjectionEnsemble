@@ -9,6 +9,7 @@ from .models import TSNEHParams, UMAPHParams
 
 FAST_TSNE_PATH = "/home/myeongwon/mw_dir/FS_TSNE/src/fitsne"
 import sys
+
 sys.path.append(FAST_TSNE_PATH)
 from fast_tsne import fast_tsne
 
@@ -42,6 +43,7 @@ def TSNEWrapper(data: np.ndarray, hparams: TSNEHParams):
 
 # def FastTSNEWrapper(data: np.ndarray, hparams: TSNEHParams):
 #     return
+
 
 def FastTSNEWrapper(data: np.ndarray, hparams: TSNEHParams) -> np.ndarray:
     """

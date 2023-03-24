@@ -1,0 +1,63 @@
+$primary: #4e79a7;
+$secondary: #f28e2b;
+$danger: #e15759;
+$info: #76b7b2;
+$success: #59a14f;
+$warning: #edc948;
+$tableau7: #b07aa1;
+
+@import "../node_modules/bootstrap/scss/bootstrap";
+@import url('https://fonts.googleapis.com/css?family=Open+Sans');
+
+body {
+    height: 100vh;
+    font-family: 'Open Sans', 'sans-serif';
+    font-size: 17px;
+}
+
+.container {
+    width: 100%;
+    max-width: 100%;
+}
+
+#dataTitle, #method{
+    width:200px;
+    font-size:15px;
+}
+
+
+#generateBtn {
+    width: 100%;
+    height: 35px;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.rangeLabel, .rangeValue{
+    font-size:16px;
+}
+
+.form-range{
+    height:10px;
+}
+
+.hpram-section{
+    height:325px;
+}
+
+.heatmap-cell {
+    cursor: pointer;
+}
+
+.highlight-cell{
+    stroke:#b07aa1;
+    stroke-width:3px;
+}
+
+i{
+    cursor:pointer;
+}
+

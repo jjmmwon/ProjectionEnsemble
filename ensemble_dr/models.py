@@ -11,9 +11,7 @@ class TSNEHParams:
 
     def __dict__(self):
         return {
-            "initialization": self.initialization,
-            "perplexity": self.perplexity,
-            "learning_rate": self.learning_rate,
+            "init": self.initialization,
         }
 
 
@@ -29,10 +27,7 @@ class UMAPHParams:
     min_dist: float
 
     def __dict__(self):
-        return {
-            "n_neighbors": self.n_neighbors,
-            "min_dist": self.min_dist,
-        }
+        return {}
 
 
 class UMAPHParamsBody(BaseModel):
@@ -49,11 +44,14 @@ class Point:
 
     def __dict__(self):
         return {
-            "id": self.id,
-            "x": self.x,
-            "y": self.y,
-            "label": self.label,
+            "i": self.id,
+            "x": round(self.x, 3),
+            "y": round(self.y, 3),
+            "l": self.label,
         }
+
+    def __csv__(self):
+        return f"{self.id},{round(self.x,3)},{round(self.y,3)},{self.label}"
 
 
 @dataclass
@@ -66,9 +64,9 @@ class FSMResult:
     def __dict__(self):
         return {
             "k": self.k,
-            "min_support": self.min_support,
-            "subgraphs": self.subgraphs,
-            "contour_coords": self.contour_coords,
+            "ms": self.min_support,
+            "subgs": self.subgraphs,
+            "coords": self.contour_coords,
         }
 
 
@@ -79,8 +77,8 @@ class DRResult:
 
     def __dict__(self):
         return {
-            "embedding": [p.__dict__() for p in self.embedding],
-            "hyper_parameters": self.hyper_parameters.__dict__(),
+            "embedding": "i,x,y,l\n" + "\n".join([p.__csv__() for p in self.embedding]),
+            "hprams": self.hyper_parameters.__dict__(),
         }
 
 
