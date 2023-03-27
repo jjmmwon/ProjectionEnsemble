@@ -14,7 +14,7 @@ async function ensembleDR() {
 function changeMode() {
     let mode = d3.select(this).property('value');
 
-    eventHandlers.updateViews(mode);
+    eventHandlers.changeMode(mode);
 }
 
 function changeHyperparams() {

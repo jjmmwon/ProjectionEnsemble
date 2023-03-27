@@ -29,7 +29,7 @@ projectionsView = {
             eventHandlers
         );
 
-        sc.initialize()
+        sc.initialize(embedding, labelInfo, fsmResult)
             // .on('brush', (brushedSet) => {
             //     this.brushedSet.clear();
             //     brushedSet.forEach((d) => this.brushedSet.add(d));
@@ -38,8 +38,8 @@ projectionsView = {
             //         if (sc !== sc2) sc2.hideBrush();
             //     });
             // })
-            .embedData(embedding, labelInfo, fsmResult)
-            .updateView('dualMode');
+            .updateView()
+            .changeMode('dualMode');
 
         this.scatterplots.push(sc);
 
@@ -58,9 +58,15 @@ projectionsView = {
         }
     },
 
-    updateView(mode) {
+    updateView() {
         this.scatterplots.forEach((sc) => {
-            sc.updateView(mode);
+            sc.updateView();
+        });
+    },
+
+    changeMode(mode) {
+        this.scatterplots.forEach((sc) => {
+            sc.changeMode(mode);
         });
     },
 
@@ -147,13 +153,19 @@ eventHandlers = {
     clickCell: function (args) {
         d3.select('#kRange').property('value', args.k);
         d3.select('#msRange').property('value', args.ms);
+        d3.select(`#kRangeValue`).text(args.k);
+        d3.select(`#msRangeValue`).text(args.ms);
         this.updateViews();
     },
 
-    updateViews: function (mode) {
-        projectionsView.updateView(mode);
+    updateViews: function () {
+        projectionsView.updateView();
         realtionView.updateView();
         hyperparameterView.updateView();
+    },
+
+    changeMode: function (mode) {
+        projectionsView.changeMode(mode);
     },
 
     linkViews: function (eventType, target) {
@@ -176,7 +188,7 @@ labelInfo = {
 
     add(labels) {
         this.labels = labels;
-        this.labelSet = [...new Set(labels)];
+        this.labelSet = [...new Set(labels)].sort();
     },
 };
 
@@ -207,22 +219,14 @@ textureScale = {
             .background('rgb(120,120,120)'),
     ],
 
-    remainders: textures
-        .lines()
-        .orientation('vertical', 'horizontal')
-        .size(4)
-        .strokeWidth(1)
-        .shapeRendering('crispEdges'),
-
     getTexture(i) {
-        return i == -1 ? this.remainders : this.textures[i];
+        return this.textures[i];
     },
     length() {
         return this.textures.length;
     },
     callTextures(f) {
         this.textures.forEach((t) => f(t));
-        f(this.remainders);
     },
 };
 
@@ -232,9 +236,7 @@ async function ensembleDR(title, method) {
     reset();
 
     await d3
-        .json(
-            `http://localhost:50008/v1/preset?title=${title}&method=${method}`
-        )
+        .json(`http://localhost:50004/v/preset?title=${title}&method=${method}`)
         .then((data) => {
             console.log(data);
             drResult = data.dr_results;
@@ -243,7 +245,6 @@ async function ensembleDR(title, method) {
             drResult.forEach((dr) => {
                 dr.embedding = Papa.parse(dr.embedding, { header: true }).data;
             });
-            console.log(drResult);
 
             labelInfo.add(drResult[0].embedding.map((e) => e.l));
 

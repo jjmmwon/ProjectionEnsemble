@@ -127,7 +127,7 @@ class Sankey {
                         .getTexture(d.id - this.labelLength)
                         .url();
                 } else if (d.id < nodes.length - 1) {
-                    return this.textureScale.getTexture(-1).url();
+                    return 'rgb(240,240,240)';
                 } else {
                     return 'gray';
                 }
@@ -185,11 +185,11 @@ class Sankey {
         });
 
         // Outliers node
-        this.graph.nodes.push('Outliers');
+        this.graph.nodes.push('FS-1');
         let target = [...new Set(outliers.map((i) => this.labels[i]))];
         target.forEach((t) => {
             this.graph.links.push({
-                source: this.graph.nodes.indexOf('Outliers'),
+                source: this.graph.nodes.indexOf('FS-1'),
                 target: this.graph.nodes.indexOf(t),
                 value: outliers.map((i) => this.labels[i]).filter((c) => c == t)
                     .length,
@@ -201,6 +201,7 @@ class Sankey {
                 id: i,
             };
         });
+        console.log(this.graph.nodes);
     }
 
     drawLegend() {
