@@ -88,7 +88,7 @@ class Heatmap {
             .attr('transform', `translate(25, 10)`)
             .attr('text-anchor', 'middle')
             .attr('alignment-baseline', 'middle')
-            .text('min sup')
+            .text('support')
             .attr('font-size', '13px')
             .attr('font-weight', 'bold');
 
@@ -101,7 +101,6 @@ class Heatmap {
     update(fsmResult) {
         this.maxSubgraphsLength = d3.max(fsmResult, (d) => d.subgs.length);
         this.colorScale.domain([1, Math.ceil(this.maxSubgraphsLength * 1.5)]);
-        console.log(this.eventHandlers);
 
         this.cells
             .selectAll('rect')

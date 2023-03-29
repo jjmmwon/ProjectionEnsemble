@@ -12,7 +12,7 @@ $tableau7: #b07aa1;
 body {
     height: 100vh;
     font-family: 'Open Sans', 'sans-serif';
-    font-size: 17px;
+    font-size: 16px;
 }
 
 .container {
@@ -20,9 +20,13 @@ body {
     max-width: 100%;
 }
 
+.section-title{
+    font-size:18px;
+}
+
 #dataTitle, #method{
     width:200px;
-    font-size:15px;
+    font-size:13px;
 }
 
 
@@ -36,8 +40,20 @@ body {
     text-align: center;
 }
 
-.rangeLabel, .rangeValue{
-    font-size:16px;
+#modeBtns{
+    width:120px;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.rangeLabel{
+    width:60px;
+}
+.rangeValue{
+    width:20px;
 }
 
 .form-range{
@@ -45,10 +61,14 @@ body {
 }
 
 .hpram-section{
-    height:325px;
+    height:300px;
 }
 
-.heatmap-cell {
+.hpramRange{
+    width:180px;
+}
+
+.heatmap-cell, .node {
     cursor: pointer;
 }
 
