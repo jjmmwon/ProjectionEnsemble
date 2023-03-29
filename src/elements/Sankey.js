@@ -11,10 +11,11 @@ class Sankey {
         this.height = height - this.margin.top - this.margin.bottom;
     }
 
-    initialize(fsmResult, labelInfo, textureScale, eventHandlers) {
-        this.fsmResult = fsmResult;
-        this.labelSet = labelInfo.labelSet;
-        this.labels = labelInfo.labels;
+    initialize(storage, textureScale, eventHandlers) {
+        this.fsmResult = storage.fsmResult;
+        this.labelSet = storage.labelSet;
+        this.labels = storage.labels;
+        this.storage = storage;
         this.labelLength = this.labelSet.length;
         this.textureScale = textureScale;
         this.eventHandlers = eventHandlers;
@@ -60,16 +61,12 @@ class Sankey {
     }
 
     update() {
-        this.k = d3.select('#kRange').property('value');
-        this.minSupport = d3.select('#msRange').property('value');
-
         this.labelColorScale = d3.scaleOrdinal([], d3.schemeTableau10);
-
-        this.fsmResult.forEach((d) => {
-            if (d.k == this.k && d.ms == this.minSupport) {
-                this.subgraphs = d.subgs;
-            }
-        });
+        // this.fsmResult.forEach((d) => {
+        //     if (d.k == this.k && d.ms == this.minSupport) {
+        //         this.subgraphs = d.subgs;
+        //     }
+        // });
 
         this.makeGraph();
 
@@ -116,6 +113,7 @@ class Sankey {
             .selectAll('rect')
             .data(nodes)
             .join('rect')
+            .attr('class', 'node')
             .style('fill', (d) => {
                 if (d.id < this.labelLength) {
                     return this.labelColorScale(d.id);
@@ -147,61 +145,70 @@ class Sankey {
                       )
                     : this.eventHandlers.linkViews('classHover', d.id);
             })
-            .on('mouseout', () => {
-                this.eventHandlers.linkViews('mouseOut');
-                this.link.style('stroke-opacity', 0.1);
+            .on('mouseout', (_, d) => {
+                d.id >= this.labelLength
+                    ? this.eventHandlers.linkViews(
+                          'fsMouseOut',
+                          d.id - this.labelLength
+                      )
+                    : this.eventHandlers.linkViews('classMouseOut', d.id);
             });
 
         this.drawLegend();
     }
 
     makeGraph() {
+        let fsNodes,
+            remainders = {};
         this.graph = {
             nodes: [],
             links: [],
         };
 
-        this.graph.nodes = [...this.labelSet];
-        let outliers = [...new Array(this.labels.length)].map((_, i) => i);
+        fsNodes = [...new Set(this.storage.groupedData.map((d) => d.FS))];
 
-        // Subgraphs nodes
-        this.subgraphs.forEach((fs, i) => {
-            this.graph.nodes.push('FS' + i);
-            outliers = outliers.filter((o) => !fs.includes(o));
+        fsNodes.length <= 11
+            ? (this.graph.nodes = [...this.labelSet, ...fsNodes])
+            : (this.graph.nodes = [
+                  ...this.labelSet,
+                  ...fsNodes.slice(0, 10),
+                  'remainders',
+                  'outliers',
+              ]);
 
-            let target = [
-                ...new Set(this.subgraphs[i].map((j) => this.labels[j])),
-            ];
+        this.storage.groupedData
+            .filter((d) => d.FS != 'outliers' && d.FS > 10)
+            .forEach((d) => {
+                remainders[d.label]
+                    ? (remainders[d.label] += d.points.length)
+                    : (remainders[d.label] = d.points.length);
+            });
 
-            target.forEach((t) => {
+        this.storage.groupedData.forEach((d) => {
+            this.graph.nodes.indexOf(d.FS) < 0
+                ? null
+                : this.graph.links.push({
+                      source: this.graph.nodes.indexOf(d.FS),
+                      target: this.graph.nodes.indexOf(d.label),
+                      value: d.points.length,
+                  });
+        });
+
+        Object.keys(remainders)
+            .sort()
+            .forEach((d) => {
                 this.graph.links.push({
-                    source: this.graph.nodes.indexOf('FS' + i),
-                    target: this.graph.nodes.indexOf(t),
-                    value: this.subgraphs[i]
-                        .map((j) => this.labels[j])
-                        .filter((c) => c == t).length,
+                    source: this.graph.nodes.indexOf('remainders'),
+                    target: this.graph.nodes.indexOf(d),
+                    value: remainders[d],
                 });
             });
-        });
-
-        // Outliers node
-        this.graph.nodes.push('FS-1');
-        let target = [...new Set(outliers.map((i) => this.labels[i]))];
-        target.forEach((t) => {
-            this.graph.links.push({
-                source: this.graph.nodes.indexOf('FS-1'),
-                target: this.graph.nodes.indexOf(t),
-                value: outliers.map((i) => this.labels[i]).filter((c) => c == t)
-                    .length,
-            });
-        });
 
         this.graph.nodes.forEach((_, i) => {
             this.graph.nodes[i] = {
                 id: i,
             };
         });
-        console.log(this.graph.nodes);
     }
 
     drawLegend() {
@@ -242,6 +249,11 @@ class Sankey {
             return l.source.id === target || l.target.id === target ? 0.4 : 0.1;
         });
     }
+
+    onToggle(target) {
+        this.link;
+    }
+    offToggle(target) {}
 
     mouseOut() {
         this.link.style('stroke-opacity', 0.1);

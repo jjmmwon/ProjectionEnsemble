@@ -24,7 +24,7 @@ class Scatterplot {
         };
         this.width = width - this.margin.left - this.margin.right;
         this.height = height - this.margin.top - this.margin.bottom;
-        this.method = method.substr(0, 4) === 'tsne' ? 't-SNE' : 'UMAP';
+        this.method = method.substr(0, 4) === 'tsne' ? '<i>t </i>-SNE' : 'UMAP';
         this.mode = 'dualMode';
         this.hyperparameters = hyperparameters;
         this.brushedSet = brushedSet;
@@ -33,29 +33,32 @@ class Scatterplot {
         this.handlers = {};
     }
 
-    initialize(embedding, labelInfo, fsmResult) {
+    initialize(embedding, storage) {
         this.embedding = embedding;
-        this.labelSet = labelInfo.labelSet;
-        this.labels = labelInfo.labels;
-        this.fsmResult = fsmResult;
+        this.storage = storage;
+
+        this.fsmResult = storage.fsmResult;
+        this.labelSet = storage.labelSet;
+        this.labels = storage.labels;
 
         this.div.attr(
             'class',
-            'scatterplot bg-white p-1 mb-2 mx-1 rounded-3 justify-content-center'
+            'scatterplot bg-white p-1 my-1 me-2 rounded-3 justify-content-center border border-priamry'
         );
 
-        this.header = this.div.append('div').attr('class', 'd-flex my-1');
+        this.header = this.div
+            .append('div')
+            .attr('class', 'd-flex mt-1 mx-2 justify-content-between');
 
         this.header
             .append('div')
-            .attr('class', 'fs-6 fw-bold mx-2')
-            .text(`${this.method} ${this.id + 1}`);
+            .attr('class', 'fs-6 fw-bold ms-1')
+            .html(`${this.method} ${this.id + 1}`);
 
-        this.method == 't-SNE'
+        this.method !== 'UMAP'
             ? this.header
-                  .append('div')
-                  .attr('class', 'badge rounded-pill text-bg-primary ms-2 py-1')
-                  .style('font-size', '12px')
+                  .append('span')
+                  .attr('class', 'badge rounded-pill text-bg-primary me-1')
                   .text(`${this.hyperparameters['init']}`)
             : null;
 
@@ -113,43 +116,10 @@ class Scatterplot {
         return this;
     }
 
-    makePointGroup() {
-        let group;
-        this.updateHyperparams();
-        this.groupedData = [];
-        let outliers = [...new Array(this.labels.length)].map((_, i) => i);
-        this.subgraphs.forEach((s, i) => {
-            outliers = outliers.filter((o) => !s.includes(o));
-            group = {};
-            s.forEach((d) => {
-                group[`${this.labels[d]}`]
-                    ? group[`${this.labels[d]}`].push(d)
-                    : (group[`${this.labels[d]}`] = [d]);
-            });
-
-            Object.keys(group).forEach((k) => {
-                this.groupedData.push({ FS: i, label: k, points: group[k] });
-            });
-        });
-
-        group = {};
-        outliers.forEach((d) => {
-            group[`${this.labels[d]}`]
-                ? group[`${this.labels[d]}`].push(d)
-                : (group[`${this.labels[d]}`] = [d]);
-        });
-        Object.keys(group).forEach((k) => {
-            this.groupedData.push({ FS: -1, label: k, points: group[k] });
-        });
-
-        console.log(this.groupedData);
-        return this;
-    }
-
     embedGroupedData() {
         this.circleGroup = this.pointGroup
             .selectAll('g')
-            .data(this.groupedData)
+            .data(this.storage.groupedData)
             .join('g');
 
         this.circles = this.circleGroup
@@ -166,31 +136,6 @@ class Scatterplot {
 
         this.circles
             .attr('fill', (d) => this.labelColorScale(this.embedding[d].l))
-            .attr('opacity', 0.6)
-            .attr('r', 1.5);
-
-        return this;
-    }
-
-    //update event
-    embedData() {
-        // append points
-        this.circles = this.container
-            .selectAll('circle')
-            .data(this.embedding)
-            .join('circle');
-
-        this.circles
-            .attr('transform', (d) => {
-                return (
-                    'translate(' +
-                    this.xScale(d.x) +
-                    ',' +
-                    this.yScale(d.y) +
-                    ')'
-                );
-            })
-            .attr('fill', 'gray')
             .attr('opacity', 0.8)
             .attr('r', 1.5);
 
@@ -198,6 +143,7 @@ class Scatterplot {
     }
 
     drawContour() {
+        this.contourCoords = this.storage.contourData[this.id];
         const line = d3
             .line()
             .x((d) => this.xScale(d[0]))
@@ -205,7 +151,7 @@ class Scatterplot {
 
         this.contours = this.contourGroup
             .selectAll('path')
-            .data(this.contourData)
+            .data(this.contourCoords.slice(0, 10))
             .join('path');
 
         this.contours
@@ -216,7 +162,7 @@ class Scatterplot {
                     : 'rgb(240,240,240)'
             )
             .attr('id', (_, i) => `FS${i}`)
-            .attr('fill-opacity', 0.5)
+            .attr('fill-opacity', 0.4)
             .attr('stroke', 'black')
             .attr('stroke-opacity', 0.8)
             .on('mouseover', (d) => {
@@ -225,13 +171,15 @@ class Scatterplot {
             })
             .on('mouseout', (d) => {
                 let fsID = +d3.select(d.target).attr('id').slice(2);
-                this.eventHandlers.linkViews('mouseOut', fsID);
+                this.eventHandlers.linkViews('fsMouseOut', fsID);
+            })
+            .on('click', (d) => {
+                let fsID = +d3.select(d.target).attr('id').slice(2);
+                this.eventHandlers.linkViews('fsClick', fsID);
             });
     }
 
     updateView() {
-        this.updateHyperparams();
-        this.makePointGroup();
         this.embedGroupedData();
         this.drawContour();
         return this;
@@ -255,19 +203,8 @@ class Scatterplot {
         }
     }
 
-    updateHyperparams() {
-        this.k = d3.select('#kRange').property('value');
-        this.minSupport = d3.select('#msRange').property('value');
-
-        this.fsmResult.forEach((fs) => {
-            if (fs.ms == this.minSupport && fs.k == this.k) {
-                this.contourData = fs.coords[this.id];
-                this.subgraphs = fs.subgs;
-            }
-        });
-    }
-
     highlightFS(target) {
+        if (target > 9) return;
         this.contours
             .attr('stroke-opacity', (_, i) => (i === target ? 1 : 0.1))
             .attr('fill-opacity', (_, i) => (i === target ? 0.5 : 0.1));
@@ -275,20 +212,20 @@ class Scatterplot {
         this.circleGroup
             .filter((d) => d.FS === target)
             .selectAll('circle')
-            .attr('opacity', 1);
+            .attr('r', 4);
 
         this.circleGroup
             .filter((d) => d.FS !== target)
             .selectAll('circle')
-            .attr('opacity', 0.1);
+            .attr('opacity', 0.05);
     }
     highlightClass(target) {
         this.circleGroup
-            .filter((d) => d.label === this.labelSet[target])
+            .filter((d) => d.label !== this.labelSet[target])
             .selectAll('circle')
-            .attr('r', 3);
+            .attr('opacity', 0.05);
 
-        let containingContour = this.groupedData
+        let containingContour = this.storage.groupedData
             .filter((d) => d.label === this.labelSet[target])
             .map((d) => d.FS);
 
@@ -305,47 +242,24 @@ class Scatterplot {
         });
     }
 
-    mouseOut() {
-        this.contours.attr('stroke-opacity', 0.8).attr('fill-opacity', 0.5);
-        this.circles.attr('opacity', 0.6);
-    }
+    mouseOut(eventType, target) {
+        if (target > 9) return;
+        this.contours.attr('stroke-opacity', 0.8).attr('fill-opacity', 0.4);
+        if (eventType == 'fsMouseOut') {
+            this.circleGroup
+                .filter((d) => d.FS !== target)
+                .selectAll('circle')
+                .attr('opacity', 0.8);
 
-    on(eventType, handler) {
-        this.handlers[eventType] = handler;
-        return this;
-    }
-
-    isBrushed(d, selection) {
-        if (!selection) return;
-        let [[x0, y0], [x1, y1]] = selection;
-        let x = this.xScale(d.x);
-        let y = this.yScale(d.y);
-
-        return x0 <= x && x <= x1 && y0 <= y && y <= y1;
-    }
-
-    hideBrush() {
-        this.container.call(this.brush.clear);
-    }
-
-    brushCircles(event) {
-        let selection = event.selection,
-            brushedSet = selection
-                ? new Set(
-                      this.embedding
-                          .filter((d) => this.isBrushed(d, selection))
-                          .map((d) => d.id)
-                  )
-                : new Set();
-
-        if (this.handlers.brush) {
-            this.handlers.brush(brushedSet);
+            this.circleGroup
+                .filter((d) => d.FS === target)
+                .selectAll('circle')
+                .attr('r', 1.5);
+        } else {
+            this.circleGroup
+                .filter((d) => d.label !== this.labelSet[target])
+                .selectAll('circle')
+                .attr('opacity', 0.8);
         }
-    }
-
-    highlightBrushed() {
-        this.circles
-            .classed('brushed', (d) => this.brushedSet.has(d.id))
-            .attr('opacity', 0.8);
     }
 }

@@ -10,13 +10,14 @@ let projectionsView,
     hyperparameterView,
     eventHandlers,
     labelInfo,
+    storage,
     textureScale;
 
 projectionsView = {
     scatterplots: [],
     brushedSet: new Set(),
 
-    add(method, hyperparams, embedding, labelInfo, fsmResult, textureScale) {
+    add(method, hyperparams, embedding, storage, textureScale) {
         let sc = new Scatterplot(
             this.scatterplots.length,
             '.scatterplot-section',
@@ -29,7 +30,7 @@ projectionsView = {
             eventHandlers
         );
 
-        sc.initialize(embedding, labelInfo, fsmResult)
+        sc.initialize(embedding, storage)
             // .on('brush', (brushedSet) => {
             //     this.brushedSet.clear();
             //     brushedSet.forEach((d) => this.brushedSet.add(d));
@@ -82,9 +83,9 @@ projectionsView = {
         });
     },
 
-    mouseOut() {
+    mouseOut(eventType, target) {
         this.scatterplots.forEach((sc) => {
-            sc.mouseOut();
+            sc.mouseOut(eventType, target);
         });
     },
 
@@ -104,10 +105,8 @@ projectionsView = {
 realtionView = {
     sankey: new Sankey('#fsView', 280, 380),
 
-    add(data, labelInfo, textureScale) {
-        this.sankey
-            .initialize(data, labelInfo, textureScale, eventHandlers)
-            .update();
+    add(storage, textureScale) {
+        this.sankey.initialize(storage, textureScale, eventHandlers).update();
     },
     updateView() {
         this.sankey.update();
@@ -150,6 +149,9 @@ hyperparameterView = {
 };
 
 eventHandlers = {
+    toggledFS: new Set(),
+    toggledClass: new Set(),
+
     clickCell: function (args) {
         d3.select('#kRange').property('value', args.k);
         d3.select('#msRange').property('value', args.ms);
@@ -159,6 +161,7 @@ eventHandlers = {
     },
 
     updateViews: function () {
+        storage.updateHyperparams();
         projectionsView.updateView();
         realtionView.updateView();
         hyperparameterView.updateView();
@@ -175,20 +178,80 @@ eventHandlers = {
         } else if (eventType == 'classHover') {
             projectionsView.highlightClass(target);
             realtionView.highlightClass(target);
-        } else if (eventType == 'mouseOut') {
-            projectionsView.mouseOut();
+        } else if (eventType == 'fsMouseOut') {
+            projectionsView.mouseOut(eventType, target);
+            realtionView.mouseOut();
+        } else if (eventType == 'classMouseOut') {
+            projectionsView.mouseOut(eventType, target);
             realtionView.mouseOut();
         }
     },
 };
 
-labelInfo = {
-    labelSet: [],
+storage = {
     labels: [],
+    labelSet: [],
+    fsmResult: [],
+    subgraphs: [],
+    contourData: [],
+    groupedData: [],
 
-    add(labels) {
-        this.labels = labels;
-        this.labelSet = [...new Set(labels)].sort();
+    add(data) {
+        this.labels = data.dr_results[0].embedding.map((d) => d.l);
+        this.labelSet = [...new Set(this.labels)].sort();
+        this.fsmResult = data.fsm_results;
+        this.updateHyperparams();
+    },
+
+    updateHyperparams() {
+        this.fsmResult.forEach((fs) => {
+            if (
+                fs.ms == d3.select('#msRange').property('value') &&
+                fs.k == d3.select('#kRange').property('value')
+            ) {
+                this.contourData = fs.coords;
+                this.subgraphs = fs.subgs;
+            }
+        });
+        this.updatePointGroup();
+        return this;
+    },
+
+    updatePointGroup() {
+        let group = {},
+            outliers = [...new Array(this.labels.length)].map((_, i) => i);
+
+        this.groupedData = [];
+
+        this.subgraphs.forEach((s, i) => {
+            outliers = outliers.filter((o) => !s.includes(o));
+            group = {};
+            s.forEach((d) => {
+                group[this.labels[d]]
+                    ? group[this.labels[d]].push(d)
+                    : (group[this.labels[d]] = [d]);
+            });
+
+            Object.keys(group).forEach((k) => {
+                this.groupedData.push({ FS: i, label: k, points: group[k] });
+            });
+        });
+
+        group = {};
+        outliers.forEach((d) => {
+            group[this.labels[d]]
+                ? group[this.labels[d]].push(d)
+                : (group[this.labels[d]] = [d]);
+        });
+        Object.keys(group).forEach((k) => {
+            this.groupedData.push({
+                FS: 'outliers',
+                label: k,
+                points: group[k],
+            });
+        });
+
+        return this;
     },
 };
 
@@ -199,17 +262,6 @@ textureScale = {
         textures.paths().d('caps').thicker(),
         textures.paths().d('squares').thicker(),
 
-        textures.lines().thicker(),
-        textures.lines().orientation('vertical').size(6).strokeWidth(1.5),
-        textures.lines().orientation('horizontal').size(7).strokeWidth(2),
-        textures.lines().orientation('4/8').size(8).strokeWidth(3),
-        textures
-            .lines()
-            .orientation('vertical')
-            .stroke('white')
-            .size(8)
-            .strokeWidth(2)
-            .background('rgb(160,160,160)'),
         textures
             .lines()
             .orientation('horizontal')
@@ -217,6 +269,18 @@ textureScale = {
             .size(8)
             .strokeWidth(2)
             .background('rgb(120,120,120)'),
+        textures.lines().orientation('horizontal').size(7).strokeWidth(2),
+
+        textures.lines().thicker(),
+        textures.lines().orientation('6/8').size(8).strokeWidth(3),
+        textures.lines().orientation('vertical').size(6).strokeWidth(1.5),
+        textures
+            .lines()
+            .orientation('vertical')
+            .stroke('white')
+            .size(8)
+            .strokeWidth(2)
+            .background('rgb(160,160,160)'),
     ],
 
     getTexture(i) {
@@ -236,7 +300,9 @@ async function ensembleDR(title, method) {
     reset();
 
     await d3
-        .json(`http://localhost:50004/v/preset?title=${title}&method=${method}`)
+        .json(
+            `http://localhost:50004/v1/preset?title=${title}&method=${method}`
+        )
         .then((data) => {
             console.log(data);
             drResult = data.dr_results;
@@ -246,20 +312,20 @@ async function ensembleDR(title, method) {
                 dr.embedding = Papa.parse(dr.embedding, { header: true }).data;
             });
 
-            labelInfo.add(drResult[0].embedding.map((e) => e.l));
+            storage.add(data);
 
+            console.log(drResult);
             drResult.forEach((e) => {
                 projectionsView.add(
                     method,
                     e.hprams,
                     e.embedding,
-                    labelInfo,
-                    fsmResult,
+                    storage,
                     textureScale
                 );
             });
 
-            realtionView.add(fsmResult, labelInfo, textureScale);
+            realtionView.add(storage, textureScale);
             hyperparameterView.add(fsmResult);
         });
 }
