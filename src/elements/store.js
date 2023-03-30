@@ -9,7 +9,6 @@ let projectionsView,
     realtionView,
     hyperparameterView,
     eventHandlers,
-    labelInfo,
     storage,
     textureScale;
 
@@ -30,17 +29,7 @@ projectionsView = {
             eventHandlers
         );
 
-        sc.initialize(embedding, storage)
-            // .on('brush', (brushedSet) => {
-            //     this.brushedSet.clear();
-            //     brushedSet.forEach((d) => this.brushedSet.add(d));
-            //     this.scatterplots.forEach((sc2) => {
-            //         sc2.highlightBrushed();
-            //         if (sc !== sc2) sc2.hideBrush();
-            //     });
-            // })
-            .updateView()
-            .changeMode('dualMode');
+        sc.initialize(embedding, storage).updateView().changeMode('dualMode');
 
         this.scatterplots.push(sc);
 
@@ -71,9 +60,9 @@ projectionsView = {
         });
     },
 
-    highlightFS(target) {
+    updateToggle(onSet) {
         this.scatterplots.forEach((sc) => {
-            sc.highlightFS(target);
+            sc.updateToggle(onSet);
         });
     },
 
@@ -112,12 +101,12 @@ realtionView = {
         this.sankey.update();
     },
 
-    highlightFS(target) {
-        this.sankey.highlightFS(target);
+    hover(type, target) {
+        this.sankey.hover(type, target);
     },
 
-    highlightClass(target) {
-        this.sankey.highlightClass(target);
+    updateToggle(onSet) {
+        this.sankey.updateToggle(onSet);
     },
 
     mouseOut() {
@@ -145,46 +134,6 @@ hyperparameterView = {
 
     reset() {
         this.heatmap.div.remove();
-    },
-};
-
-eventHandlers = {
-    toggledFS: new Set(),
-    toggledClass: new Set(),
-
-    clickCell: function (args) {
-        d3.select('#kRange').property('value', args.k);
-        d3.select('#msRange').property('value', args.ms);
-        d3.select(`#kRangeValue`).text(args.k);
-        d3.select(`#msRangeValue`).text(args.ms);
-        this.updateViews();
-    },
-
-    updateViews: function () {
-        storage.updateHyperparams();
-        projectionsView.updateView();
-        realtionView.updateView();
-        hyperparameterView.updateView();
-    },
-
-    changeMode: function (mode) {
-        projectionsView.changeMode(mode);
-    },
-
-    linkViews: function (eventType, target) {
-        if (eventType == 'fsHover') {
-            projectionsView.highlightFS(target);
-            realtionView.highlightFS(target);
-        } else if (eventType == 'classHover') {
-            projectionsView.highlightClass(target);
-            realtionView.highlightClass(target);
-        } else if (eventType == 'fsMouseOut') {
-            projectionsView.mouseOut(eventType, target);
-            realtionView.mouseOut();
-        } else if (eventType == 'classMouseOut') {
-            projectionsView.mouseOut(eventType, target);
-            realtionView.mouseOut();
-        }
     },
 };
 
@@ -233,7 +182,13 @@ storage = {
             });
 
             Object.keys(group).forEach((k) => {
-                this.groupedData.push({ FS: i, label: k, points: group[k] });
+                this.groupedData.push({
+                    FS: i,
+                    label: k,
+                    points: group[k],
+                    state: 'default',
+                    change: '',
+                });
             });
         });
 
@@ -248,10 +203,139 @@ storage = {
                 FS: 'outliers',
                 label: k,
                 points: group[k],
+                state: 'default',
+                change: '',
             });
         });
 
+        console.log(this.groupedData);
+
         return this;
+    },
+
+    toggleFS(target, onSet) {
+        console.log(target);
+
+        if (!onSet.has(target)) {
+            // toggle on event
+            if (!onSet.size) {
+                // first toggle
+                if (target === 'remainders') {
+                    // toggle on remainders
+                    this.groupedData.forEach((d) => {
+                        (d.FS !== 'outliers') & (d.FS >= 10)
+                            ? (d.change = 'on')
+                            : (d.change = 'off');
+                    });
+                } else {
+                    this.groupedData.forEach((d) => {
+                        d.FS === target
+                            ? (d.change = 'on')
+                            : (d.change = 'off');
+                    });
+                }
+            } else {
+                if (target === 'remainders') {
+                    // toggle off remainders
+                    this.groupedData.forEach((d) => {
+                        (d.FS !== 'outliers') & (d.FS >= 10)
+                            ? (d.change = 'on')
+                            : (d.change = '');
+                    });
+                } else {
+                    this.groupedData.forEach((d) => {
+                        d.FS === target ? (d.change = 'on') : (d.change = '');
+                    });
+                }
+            }
+            onSet.add(target);
+        } else {
+            // toggle off event
+            if (onSet.size === 1) {
+                // toggle off last one
+                this.groupedData.forEach((d) => {
+                    d.change = 'default';
+                });
+            } else {
+                this.groupedData.forEach((d) => {
+                    d.FS === target && !onSet.has(d.label)
+                        ? (d.change = 'off')
+                        : (d.change = '');
+                });
+            }
+            onSet.delete(target);
+        }
+    },
+    toggleClass(target, onSet) {
+        if (!onSet.has(target)) {
+            // toggle on event
+            if (!onSet.size) {
+                // first toggle
+                this.groupedData.forEach((d) => {
+                    d.label === target ? (d.change = 'on') : (d.change = 'off');
+                });
+            } else {
+                this.groupedData.forEach((d) => {
+                    d.label === target ? (d.change = 'on') : (d.change = '');
+                });
+            }
+            onSet.add(target);
+        } else {
+            // toggle off event
+            if (onSet.size === 1) {
+                // toggle off last one
+                this.groupedData.forEach((d) => {
+                    d.change = 'default';
+                });
+            } else {
+                this.groupedData.forEach((d) => {
+                    d.label === target && !onSet.has(d.FS)
+                        ? (d.change = 'off')
+                        : (d.change = '');
+                });
+            }
+            onSet.delete(target);
+        }
+    },
+
+    completeChange() {
+        this.groupedData.forEach((d) => {
+            d.state = d.change;
+            d.change = '';
+        });
+    },
+};
+
+eventHandlers = {
+    onSet: new Set(),
+
+    clickCell: function (args) {
+        d3.select('#kRange').property('value', args.k);
+        d3.select('#msRange').property('value', args.ms);
+        d3.select(`#kRangeValue`).text(args.k);
+        d3.select(`#msRangeValue`).text(args.ms);
+        this.updateViews();
+    },
+
+    updateViews: function () {
+        storage.updateHyperparams();
+        projectionsView.updateView();
+        realtionView.updateView();
+        hyperparameterView.updateView();
+    },
+
+    changeMode: function (mode) {
+        projectionsView.changeMode(mode);
+    },
+
+    linkViews: function (type, target) {
+        type === 'FS'
+            ? storage.toggleFS(target, this.onSet)
+            : storage.toggleClass(target, this.onSet);
+
+        projectionsView.updateToggle(this.onSet);
+        realtionView.updateToggle(this.onSet);
+        storage.completeChange();
     },
 };
 

@@ -62,11 +62,6 @@ class Sankey {
 
     update() {
         this.labelColorScale = d3.scaleOrdinal([], d3.schemeTableau10);
-        // this.fsmResult.forEach((d) => {
-        //     if (d.k == this.k && d.ms == this.minSupport) {
-        //         this.subgraphs = d.subgs;
-        //     }
-        // });
 
         this.makeGraph();
 
@@ -109,6 +104,8 @@ class Sankey {
             .attr('stroke-width', ({ width }) => Math.max(2, width))
             .sort((a, b) => b.dy - a.dy);
 
+        console.log(nodes);
+
         this.node = this.nodeG
             .selectAll('rect')
             .data(nodes)
@@ -137,21 +134,14 @@ class Sankey {
             .attr('y', (d) => d.y0)
             .attr('height', (d) => d.y1 - d.y0)
             .attr('width', (d) => d.x1 - d.x0)
-            .on('mouseover', (_, d) => {
-                d.id >= this.labelLength
+            .on('click', (_, d) => {
+                console.log(d.id);
+                d.id < this.labelLength
                     ? this.eventHandlers.linkViews(
-                          'fsHover',
-                          d.id - this.labelLength
+                          'class',
+                          this.nodesMask[d.id]
                       )
-                    : this.eventHandlers.linkViews('classHover', d.id);
-            })
-            .on('mouseout', (_, d) => {
-                d.id >= this.labelLength
-                    ? this.eventHandlers.linkViews(
-                          'fsMouseOut',
-                          d.id - this.labelLength
-                      )
-                    : this.eventHandlers.linkViews('classMouseOut', d.id);
+                    : this.eventHandlers.linkViews('FS', this.nodesMask[d.id]);
             });
 
         this.drawLegend();
@@ -176,8 +166,10 @@ class Sankey {
                   'outliers',
               ]);
 
+        this.nodesMask = [...this.graph.nodes];
+
         this.storage.groupedData
-            .filter((d) => d.FS != 'outliers' && d.FS > 10)
+            .filter((d) => d.FS !== 'outliers' && d.FS > 10)
             .forEach((d) => {
                 remainders[d.label]
                     ? (remainders[d.label] += d.points.length)
@@ -235,27 +227,13 @@ class Sankey {
             .text((d) => d);
     }
 
-    highlightFS(target) {
-        this.link.style('stroke-opacity', (l) => {
-            return l.source.id === target + this.labelLength ||
-                l.target.id === target + this.labelLength
+    updateToggle(onSet) {
+        console.log(this.link.data());
+        this.link.attr('stroke-opacity', (l) =>
+            onSet.has(this.nodesMask[l.source.id]) ||
+            onSet.has(this.nodesMask[l.target.id])
                 ? 0.4
-                : 0.1;
-        });
-    }
-
-    highlightClass(target) {
-        this.link.style('stroke-opacity', (l) => {
-            return l.source.id === target || l.target.id === target ? 0.4 : 0.1;
-        });
-    }
-
-    onToggle(target) {
-        this.link;
-    }
-    offToggle(target) {}
-
-    mouseOut() {
-        this.link.style('stroke-opacity', 0.1);
+                : 0.1
+        );
     }
 }

@@ -1,5 +1,4 @@
 import * as d3 from 'd3';
-import { thresholdFreedmanDiaconis } from 'd3';
 
 export { Scatterplot };
 class Scatterplot {
@@ -143,7 +142,11 @@ class Scatterplot {
     }
 
     drawContour() {
-        this.contourCoords = this.storage.contourData[this.id];
+        this.contourCoords =
+            this.storage.contourData[this.id].length > 10
+                ? this.storage.contourData[this.id].slice(0, 10)
+                : this.storage.contourData[this.id];
+
         const line = d3
             .line()
             .x((d) => this.xScale(d[0]))
@@ -156,6 +159,7 @@ class Scatterplot {
 
         this.contours
             .attr('d', (d) => line(d))
+            .attr('class', 'contour')
             .attr('fill', (_, i) =>
                 i < this.textureScale.length()
                     ? this.textureScale.getTexture(i).url()
@@ -165,17 +169,9 @@ class Scatterplot {
             .attr('fill-opacity', 0.4)
             .attr('stroke', 'black')
             .attr('stroke-opacity', 0.8)
-            .on('mouseover', (d) => {
-                let fsID = +d3.select(d.target).attr('id').slice(2);
-                this.eventHandlers.linkViews('fsHover', fsID);
-            })
-            .on('mouseout', (d) => {
-                let fsID = +d3.select(d.target).attr('id').slice(2);
-                this.eventHandlers.linkViews('fsMouseOut', fsID);
-            })
             .on('click', (d) => {
                 let fsID = +d3.select(d.target).attr('id').slice(2);
-                this.eventHandlers.linkViews('fsClick', fsID);
+                this.eventHandlers.linkViews('FS', fsID);
             });
     }
 
@@ -203,43 +199,40 @@ class Scatterplot {
         }
     }
 
-    highlightFS(target) {
-        if (target > 9) return;
-        this.contours
-            .attr('stroke-opacity', (_, i) => (i === target ? 1 : 0.1))
-            .attr('fill-opacity', (_, i) => (i === target ? 0.5 : 0.1));
-
+    updateToggle(onSet) {
         this.circleGroup
-            .filter((d) => d.FS === target)
+            .filter((d) => d.change === 'off')
             .selectAll('circle')
-            .attr('r', 4);
-
-        this.circleGroup
-            .filter((d) => d.FS !== target)
-            .selectAll('circle')
-            .attr('opacity', 0.05);
-    }
-    highlightClass(target) {
-        this.circleGroup
-            .filter((d) => d.label !== this.labelSet[target])
-            .selectAll('circle')
+            .attr('r', 1.5)
             .attr('opacity', 0.05);
 
-        let containingContour = this.storage.groupedData
-            .filter((d) => d.label === this.labelSet[target])
-            .map((d) => d.FS);
+        this.circleGroup
+            .filter((d) => d.change === 'on')
+            .selectAll('circle')
+            .attr('r', 4)
+            .attr('opacity', 0.8);
 
-        this.contours.each(function (_, i) {
-            containingContour.includes(i)
-                ? d3
-                      .select(this)
-                      .attr('stroke-opacity', 1)
-                      .attr('fill-opacity', 0.5)
-                : d3
-                      .select(this)
-                      .attr('stroke-opacity', 0.1)
-                      .attr('fill-opacity', 0.1);
-        });
+        this.circleGroup
+            .filter((d) => d.change === 'default')
+            .selectAll('circle')
+            .attr('r', 1.5)
+            .attr('opacity', 0.8);
+
+        let toggledContours = [...new Array(10)]
+            .map((_, i) => i)
+            .filter((_, i) => onSet.has(i));
+
+        !toggledContours.length
+            ? this.contours
+                  .attr('fill-opacity', 0.4)
+                  .attr('stroke-opacity', 0.8)
+            : this.contours
+                  .attr('fill-opacity', (_, i) =>
+                      toggledContours.includes(i) ? 0.5 : 0.1
+                  )
+                  .attr('stroke-opacity', (_, i) =>
+                      toggledContours.includes(i) ? 1 : 0.1
+                  );
     }
 
     mouseOut(eventType, target) {
