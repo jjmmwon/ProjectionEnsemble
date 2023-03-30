@@ -5,8 +5,8 @@
         <link rel="icon" type="image/svg+xml" href="/vite.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Ensemble DR</title>
-      <script type="module" crossorigin src="/assets/index-df160a92.js"></script>
-      <link rel="stylesheet" href="/assets/index-780e81d3.css">
+      <script type="module" crossorigin src="/EnsembleDR/assets/index-ebfed701.js"></script>
+      <link rel="stylesheet" href="/EnsembleDR/assets/index-059f6be6.css">
     </head>
     <body class="bg-light d-flex flex-column">
         <header class="px-3">
@@ -25,9 +25,11 @@
                             class="projectionGeneration bg-white d-flex flex-column rounded-3 mb-1 px-3"
                         >
                             <div
-                                class="config-header d-flex justify-content-between pt-1 pb-1"
+                                class="config-header d-flex justify-content-between pt-2 pb-1"
                             >
-                                <div class="fw-bold">Projection Generation</div>
+                                <div class="fw-bold section-title">
+                                    Projection Generation
+                                </div>
                             </div>
                             <div class="config-section">
                                 <div
@@ -40,11 +42,14 @@
                                             class="form-select py-1"
                                             aria-label="Default select example"
                                         >
-                                            <option value="mnist_500">
+                                            <option selected value="mnist_500">
                                                 MNIST (500 rows)
                                             </option>
-                                            <option selected value="mnist">
+                                            <option value="mnist_50000">
                                                 MNIST (50,000 rows)
+                                            </option>
+                                            <option value="mnist_20000">
+                                                MNIST (20,000 rows)
                                             </option>
                                             <option value="fashion-mnist">
                                                 Fashion-MNIST (5,000 rows)
@@ -104,56 +109,60 @@
                                 </div>
                             </div>
                         </div>
-                        <div
-                            class="hpram-section bg-white mb-1 px-3 py-1 rounded-3"
-                        >
-                            <div class="fw-bold">FS Controller</div>
+                        <div class="hpram-section bg-white mb-1 px-3 rounded-3">
+                            <div class="fw-bold section-title pt-2 pb-1">
+                                FS Generation
+                            </div>
                             <div class="hpram">
-                                <div class="d-flex justify-content-between">
-                                    <div class="rangeLabel fw-bold">K</div>
-                                    <div
-                                        class="rangeValue fw-bold"
-                                        id="kRangeValue"
-                                    >
-                                        7
+                                <div
+                                    class="d-flex justify-content-between align-items-center"
+                                >
+                                    <div class="rangeLabel">K</div>
+                                    <input
+                                        type="range"
+                                        class="form-range hpramRange"
+                                        min="5"
+                                        max="10"
+                                        step="1"
+                                        value="9"
+                                        id="kRange"
+                                    />
+                                    <div class="rangeValue" id="kRangeValue">
+                                        9
                                     </div>
                                 </div>
-                                <input
-                                    type="range"
-                                    class="form-range hpramRange"
-                                    min="5"
-                                    max="10"
-                                    step="1"
-                                    value="7"
-                                    id="kRange"
-                                />
-                                <div class="d-flex justify-content-between">
+
+                                <div
+                                    class="d-flex justify-content-between align-items-center pb-2"
+                                >
                                     <div class="rangeLabel fw-bold">
-                                        Min Support
+                                        Support
                                     </div>
+                                    <input
+                                        type="range"
+                                        class="form-range hpramRange"
+                                        min="6"
+                                        max="10"
+                                        step="1"
+                                        value="7"
+                                        id="msRange"
+                                    />
                                     <div
                                         class="rangeValue fw-bold"
                                         id="msRangeValue"
                                     >
-                                        8
+                                        7
                                     </div>
                                 </div>
-                                <input
-                                    type="range"
-                                    class="form-range hpramRange"
-                                    min="6"
-                                    max="10"
-                                    step="1"
-                                    value="8"
-                                    id="msRange"
-                                />
                             </div>
                             <div id="hpramView"></div>
                         </div>
                         <div
-                            class="fsView-section bg-white px-3 py-1 flex-fill rounded-3"
+                            class="fsView-section bg-white px-3 py-2 flex-fill rounded-3"
                         >
-                            <div class="fw-bold">FS-Class Relationship</div>
+                            <div class="fw-bold section-title pb-2">
+                                FS-Class Relationship
+                            </div>
                             <div id="fsView"></div>
                         </div>
                     </div>
@@ -163,44 +172,36 @@
                         class="main-section d-flex flex-column px-3 py-2 rounded-3 bg-white"
                         style="height: 100%"
                     >
-                        <div class="fw-bold">Projections View</div>
-                        <div class="modeSelecotr py-1">
-                            <div class="form-check form-check-inline">
-                                <input
-                                    checked
-                                    class="form-check-input"
-                                    type="radio"
-                                    name="modeSelector"
-                                    id="dualMode"
+                        <div class="fw-bold section-title">
+                            Projections View
+                        </div>
+                        <div class="modeSelecotr py-2 d-flex">
+                            <div class="dual pe-1">
+                                <button
+                                    class="btn btn-primary"
+                                    id="modeBtns"
                                     value="dualMode"
-                                />
-                                <label class="form-check-label" for="dualMode"
-                                    >Dual Mode</label
                                 >
+                                    <span class="fw-bold">Dual Mode</span>
+                                </button>
                             </div>
-                            <div class="form-check form-check-inline">
-                                <input
-                                    class="form-check-input"
-                                    type="radio"
-                                    name="modeSelector"
-                                    id="fsMode"
+                            <div class="fsOnly">
+                                <button
+                                    class="btn btn-outline-primary"
+                                    id="modeBtns"
                                     value="fsMode"
-                                />
-                                <label class="form-check-label" for="fsMode"
-                                    >FS Mode</label
                                 >
+                                    <span class="fw-bold">FS Mode</span>
+                                </button>
                             </div>
-                            <div class="form-check form-check-inline">
-                                <input
-                                    class="form-check-input"
-                                    type="radio"
-                                    name="modeSelector"
-                                    id="classMode"
+                            <div class="classOnly ps-1">
+                                <button
+                                    class="btn btn-outline-primary"
+                                    id="modeBtns"
                                     value="classMode"
-                                />
-                                <label class="form-check-label" for="classMode"
-                                    >Class Mode</label
                                 >
+                                    <span class="fw-bold">Class Mode</span>
+                                </button>
                             </div>
                         </div>
                         <div></div>
