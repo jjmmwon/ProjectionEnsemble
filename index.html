@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Ensemble DR</title>
+      <script type="module" crossorigin src="/assets/index-df160a92.js"></script>
+      <link rel="stylesheet" href="/assets/index-780e81d3.css">
+    </head>
+    <body class="bg-light d-flex flex-column">
+        <header class="px-3">
+            <div class="navbar-brand fw-bold px-3 py-1" style="font-size: 22px">
+                Ensemble DR
+            </div>
+        </header>
+        <main class="container flex-fill px-3">
+            <div class="row g-2" style="height: 100%">
+                <div class="col-2">
+                    <div
+                        class="sidebar d-flex flex-column"
+                        style="height: 100%"
+                    >
+                        <div
+                            class="projectionGeneration bg-white d-flex flex-column rounded-3 mb-1 px-3"
+                        >
+                            <div
+                                class="config-header d-flex justify-content-between pt-1 pb-1"
+                            >
+                                <div class="fw-bold">Projection Generation</div>
+                            </div>
+                            <div class="config-section">
+                                <div
+                                    class="d-flex py-1 align-items-center justify-content-between"
+                                >
+                                    <div class="fw-bold">Data</div>
+                                    <div>
+                                        <select
+                                            id="dataTitle"
+                                            class="form-select py-1"
+                                            aria-label="Default select example"
+                                        >
+                                            <option value="mnist_500">
+                                                MNIST (500 rows)
+                                            </option>
+                                            <option selected value="mnist">
+                                                MNIST (50,000 rows)
+                                            </option>
+                                            <option value="fashion-mnist">
+                                                Fashion-MNIST (5,000 rows)
+                                            </option>
+                                            <option value="breast_cancer">
+                                                Breast Cancer (569 rows)
+                                            </option>
+                                            <option value="milknew">
+                                                Milk Quality (1059 rows)
+                                            </option>
+                                            <option value="mobile_price">
+                                                Mobile Price (2000 rows)
+                                            </option>
+                                            <option value="diabetes">
+                                                Diabetes (15000 rows)
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div
+                                    class="d-flex py-1 align-items-center justify-content-between"
+                                >
+                                    <div class="fw-bold">Method</div>
+                                    <div>
+                                        <select
+                                            id="method"
+                                            class="form-select py-1"
+                                            aria-label="Default select example"
+                                        >
+                                            <option selected value="tsne10">
+                                                t-SNE (10 projections)
+                                            </option>
+                                            <option value="umap10">
+                                                UMAP (10 projections)
+                                            </option>
+                                            <option value="tsne20">
+                                                t-SNE (20 projections)
+                                            </option>
+                                            <option value="umap20">
+                                                UMAP (20 projections)
+                                            </option>
+                                            <option value="manual">
+                                                Manual
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div
+                                    class="d-flex pt-1 pb-2 justify-content-between"
+                                >
+                                    <button
+                                        class="btn btn-primary fw-bold"
+                                        id="generateBtn"
+                                    >
+                                        <span>Generate</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div
+                            class="hpram-section bg-white mb-1 px-3 py-1 rounded-3"
+                        >
+                            <div class="fw-bold">FS Controller</div>
+                            <div class="hpram">
+                                <div class="d-flex justify-content-between">
+                                    <div class="rangeLabel fw-bold">K</div>
+                                    <div
+                                        class="rangeValue fw-bold"
+                                        id="kRangeValue"
+                                    >
+                                        7
+                                    </div>
+                                </div>
+                                <input
+                                    type="range"
+                                    class="form-range hpramRange"
+                                    min="5"
+                                    max="10"
+                                    step="1"
+                                    value="7"
+                                    id="kRange"
+                                />
+                                <div class="d-flex justify-content-between">
+                                    <div class="rangeLabel fw-bold">
+                                        Min Support
+                                    </div>
+                                    <div
+                                        class="rangeValue fw-bold"
+                                        id="msRangeValue"
+                                    >
+                                        8
+                                    </div>
+                                </div>
+                                <input
+                                    type="range"
+                                    class="form-range hpramRange"
+                                    min="6"
+                                    max="10"
+                                    step="1"
+                                    value="8"
+                                    id="msRange"
+                                />
+                            </div>
+                            <div id="hpramView"></div>
+                        </div>
+                        <div
+                            class="fsView-section bg-white px-3 py-1 flex-fill rounded-3"
+                        >
+                            <div class="fw-bold">FS-Class Relationship</div>
+                            <div id="fsView"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-10">
+                    <div
+                        class="main-section d-flex flex-column px-3 py-2 rounded-3 bg-white"
+                        style="height: 100%"
+                    >
+                        <div class="fw-bold">Projections View</div>
+                        <div class="modeSelecotr py-1">
+                            <div class="form-check form-check-inline">
+                                <input
+                                    checked
+                                    class="form-check-input"
+                                    type="radio"
+                                    name="modeSelector"
+                                    id="dualMode"
+                                    value="dualMode"
+                                />
+                                <label class="form-check-label" for="dualMode"
+                                    >Dual Mode</label
+                                >
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input
+                                    class="form-check-input"
+                                    type="radio"
+                                    name="modeSelector"
+                                    id="fsMode"
+                                    value="fsMode"
+                                />
+                                <label class="form-check-label" for="fsMode"
+                                    >FS Mode</label
+                                >
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input
+                                    class="form-check-input"
+                                    type="radio"
+                                    name="modeSelector"
+                                    id="classMode"
+                                    value="classMode"
+                                />
+                                <label class="form-check-label" for="classMode"
+                                    >Class Mode</label
+                                >
+                            </div>
+                        </div>
+                        <div></div>
+                        <div
+                            class="scatterplot-section d-flex flex-wrap text-center"
+                        ></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+    </body>
+</html>
