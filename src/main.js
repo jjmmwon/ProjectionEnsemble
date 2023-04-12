@@ -12,7 +12,7 @@ function main() {
     d3.selectAll('.hpramRange').each(function () {
         d3.select(this).on('change', changeHyperparams);
     });
-    ensembleDR();
+    //ensembleDR();
 }
 
 main();

@@ -54,12 +54,10 @@ class Scatterplot {
             .attr('class', 'fs-6 fw-bold ms-1')
             .html(`${this.method} ${this.id + 1}`);
 
-        this.method !== 'UMAP'
-            ? this.header
-                  .append('span')
-                  .attr('class', 'badge rounded-pill text-bg-primary me-1')
-                  .text(`${this.hyperparameters['init']}`)
-            : null;
+        this.header
+            .append('span')
+            .attr('class', 'badge rounded-pill text-bg-primary me-1')
+            .text(`${this.hyperparameters['init']}`);
 
         this.svg = this.div.append('svg');
         this.container = this.svg.append('g');
@@ -233,26 +231,5 @@ class Scatterplot {
                   .attr('stroke-opacity', (_, i) =>
                       toggledContours.includes(i) ? 1 : 0.1
                   );
-    }
-
-    mouseOut(eventType, target) {
-        if (target > 9) return;
-        this.contours.attr('stroke-opacity', 0.8).attr('fill-opacity', 0.4);
-        if (eventType == 'fsMouseOut') {
-            this.circleGroup
-                .filter((d) => d.FS !== target)
-                .selectAll('circle')
-                .attr('opacity', 0.8);
-
-            this.circleGroup
-                .filter((d) => d.FS === target)
-                .selectAll('circle')
-                .attr('r', 1.5);
-        } else {
-            this.circleGroup
-                .filter((d) => d.label !== this.labelSet[target])
-                .selectAll('circle')
-                .attr('opacity', 0.8);
-        }
     }
 }

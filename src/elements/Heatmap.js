@@ -13,7 +13,7 @@ class Heatmap {
         };
         this.width = width - this.margin.left - this.margin.right;
         this.height = height - this.margin.top - this.margin.bottom;
-        this.k = [5, 6, 7, 8, 9, 10];
+        this.k = [5, 7, 9, 11, 13, 15];
         this.minSupport = [10, 9, 8, 7, 6];
     }
 

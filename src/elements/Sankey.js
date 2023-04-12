@@ -104,8 +104,6 @@ class Sankey {
             .attr('stroke-width', ({ width }) => Math.max(2, width))
             .sort((a, b) => b.dy - a.dy);
 
-        console.log(nodes);
-
         this.node = this.nodeG
             .selectAll('rect')
             .data(nodes)
@@ -135,7 +133,6 @@ class Sankey {
             .attr('height', (d) => d.y1 - d.y0)
             .attr('width', (d) => d.x1 - d.x0)
             .on('click', (_, d) => {
-                console.log(d.id);
                 d.id < this.labelLength
                     ? this.eventHandlers.linkViews(
                           'class',
@@ -228,7 +225,13 @@ class Sankey {
     }
 
     updateToggle(onSet) {
-        console.log(this.link.data());
+        this.link
+            .filter((l) => onSet.has(this.nodesMask[l.source.id]))
+            .data()
+            .forEach((d) => {
+                console.log(this.nodesMask[d.target.id], d.value);
+            });
+
         this.link.attr('stroke-opacity', (l) =>
             onSet.has(this.nodesMask[l.source.id]) ||
             onSet.has(this.nodesMask[l.target.id])

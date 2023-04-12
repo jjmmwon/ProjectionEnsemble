@@ -1,4 +1,4 @@
-import { ensembleDR as _ensembleDR, eventHandlers } from './elements/store.js';
+import { ensembleDR as _ensembleDR, eventHandlers } from './store.js';
 import * as d3 from 'd3';
 
 let title, method;
@@ -58,7 +58,7 @@ function loading(isLoading) {
               .attr('class', 'spinner-border spinner-border-sm')
               .attr('role', 'status')
               .attr('aria-hidden', 'true')
-        : d3.select('#generateBtn').append('span').text('RUN');
+        : d3.select('#generateBtn').append('span').text('Generate');
 }
 
 export { ensembleDR, changeMode, changeHyperparams };
