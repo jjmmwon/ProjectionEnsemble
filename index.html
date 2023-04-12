@@ -4,14 +4,14 @@
         <meta charset="UTF-8" />
         <link rel="icon" type="image/svg+xml" href="/vite.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Ensemble DR</title>
-      <script type="module" crossorigin src="/EnsembleDR/assets/index-8232bcbe.js"></script>
-      <link rel="stylesheet" href="/EnsembleDR/assets/index-059f6be6.css">
+        <title>Projection Ensemble</title>
+      <script type="module" crossorigin src="/EnsembleDR/assets/index-bfe16ea2.js"></script>
+      <link rel="stylesheet" href="/EnsembleDR/assets/index-4ac8d6cd.css">
     </head>
     <body class="bg-light d-flex flex-column">
         <header class="px-3">
             <div class="navbar-brand fw-bold px-3 py-1" style="font-size: 22px">
-                Ensemble DR
+                Projection Ensemble
             </div>
         </header>
         <main class="container flex-fill px-3">
@@ -28,7 +28,7 @@
                                 class="config-header d-flex justify-content-between pt-2 pb-1"
                             >
                                 <div class="fw-bold section-title">
-                                    Projection Generation
+                                    Projection Set Generation Tab
                                 </div>
                             </div>
                             <div class="config-section">
@@ -47,6 +47,13 @@
                                             </option>
                                             <option value="mnist_50000">
                                                 MNIST (50,000 rows)
+                                            </option>
+                                            <option value="mnist_umap_3">
+                                                MNIST_UMAP(spectral) (50,000
+                                                rows)
+                                            </option>
+                                            <option value="mnist_umap_4">
+                                                MNIST_UMAP(random) (50,000 rows)
                                             </option>
                                             <option value="mnist_20000">
                                                 MNIST (20,000 rows)
@@ -79,12 +86,13 @@
                                             class="form-select py-1"
                                             aria-label="Default select example"
                                         >
-                                            <option selected value="tsne10">
-                                                t-SNE (10 projections)
-                                            </option>
-                                            <option value="umap10">
+                                            <option selected value="umap10">
                                                 UMAP (10 projections)
                                             </option>
+                                            <option value="tsne10">
+                                                t-SNE (10 projections)
+                                            </option>
+
                                             <option value="tsne20">
                                                 t-SNE (20 projections)
                                             </option>
@@ -111,9 +119,9 @@
                         </div>
                         <div class="hpram-section bg-white mb-1 px-3 rounded-3">
                             <div class="fw-bold section-title pt-2 pb-1">
-                                FS Generation
+                                Hyperparameter View
                             </div>
-                            <div class="hpram">
+                            <div class="hpram d-none">
                                 <div
                                     class="d-flex justify-content-between align-items-center"
                                 >
@@ -122,13 +130,13 @@
                                         type="range"
                                         class="form-range hpramRange"
                                         min="5"
-                                        max="10"
-                                        step="1"
-                                        value="9"
+                                        max="15"
+                                        step="2"
+                                        value="7"
                                         id="kRange"
                                     />
                                     <div class="rangeValue" id="kRangeValue">
-                                        9
+                                        8
                                     </div>
                                 </div>
 
@@ -158,10 +166,10 @@
                             <div id="hpramView"></div>
                         </div>
                         <div
-                            class="fsView-section bg-white px-3 py-2 flex-fill rounded-3"
+                            class="fsView-section bg-white px-3 py-2 rounded-3"
                         >
                             <div class="fw-bold section-title pb-2">
-                                FS-Class Relationship
+                                Class-FS Relationship View
                             </div>
                             <div id="fsView"></div>
                         </div>
@@ -172,9 +180,7 @@
                         class="main-section d-flex flex-column px-3 py-2 rounded-3 bg-white"
                         style="height: 100%"
                     >
-                        <div class="fw-bold section-title">
-                            Projections View
-                        </div>
+                        <div class="fw-bold section-title">Ensemble View</div>
                         <div class="modeSelecotr py-2 d-flex">
                             <div class="dual pe-1">
                                 <button
@@ -185,22 +191,22 @@
                                     <span class="fw-bold">Dual Mode</span>
                                 </button>
                             </div>
-                            <div class="fsOnly">
-                                <button
-                                    class="btn btn-outline-primary"
-                                    id="modeBtns"
-                                    value="fsMode"
-                                >
-                                    <span class="fw-bold">FS Mode</span>
-                                </button>
-                            </div>
-                            <div class="classOnly ps-1">
+                            <div class="classOnly">
                                 <button
                                     class="btn btn-outline-primary"
                                     id="modeBtns"
                                     value="classMode"
                                 >
                                     <span class="fw-bold">Class Mode</span>
+                                </button>
+                            </div>
+                            <div class="fsOnly ps-1">
+                                <button
+                                    class="btn btn-outline-primary"
+                                    id="modeBtns"
+                                    value="fsMode"
+                                >
+                                    <span class="fw-bold">FS Mode</span>
                                 </button>
                             </div>
                         </div>
