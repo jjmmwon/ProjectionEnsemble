@@ -29,7 +29,7 @@ class Result:
         }
 
 
-class EnsembleDR:
+class ProjectionEnsemble:
     values: np.ndarray
     target: pd.Series
 

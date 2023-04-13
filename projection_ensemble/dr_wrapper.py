@@ -78,6 +78,8 @@ def UMAPWrapper(data: np.ndarray, hparams: UMAPHParams) -> np.ndarray:
         np.ndarray: embedding
     """
     X = StandardScaler().fit_transform(data)
-    fit = umap.UMAP(n_neighbors=hparams.n_neighbors, min_dist=hparams.min_dist)
+    fit = umap.UMAP(
+        n_neighbors=hparams.n_neighbors, min_dist=hparams.min_dist, init=hparams.init
+    )
     embedding = fit.fit_transform(X)
     return StandardScaler().fit_transform(embedding)

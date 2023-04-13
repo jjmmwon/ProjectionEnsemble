@@ -1,9 +1,5 @@
 from dataclasses import dataclass
-from itertools import combinations
 from typing import Dict, List, Tuple, Union
-import json
-import time
-
 
 import networkx as nx
 import numpy as np
@@ -13,23 +9,6 @@ from shapely.geometry import LinearRing, MultiPoint, Polygon
 
 from .models import FSMResult
 from .presets import preset_k, preset_min_support
-
-
-def get_distance_matrices(embeddings: List[np.ndarray]) -> List[np.ndarray]:
-    """
-    embeddings: List[np.ndarray] shape (N, 2)
-    """
-    distance_matrices = []
-    for embedding in embeddings:
-        N = embedding.shape[0]
-        distance_matrix = np.zeros((N, N))
-        distance_matrix: np.ndarray = (
-            np.sum(np.square(embedding), axis=1)
-            + (np.sum(np.square(embedding), axis=1)).reshape(-1, 1)
-            - 2 * np.matmul(embedding, embedding.T)
-        )
-        distance_matrices.append(distance_matrix)
-    return distance_matrices
 
 
 def generate_graphs(embeddings: List[np.ndarray]) -> Dict[int, List[nx.Graph]]:
@@ -44,7 +23,7 @@ def generate_graphs(embeddings: List[np.ndarray]) -> Dict[int, List[nx.Graph]]:
             graph.add_nodes_from(list(range(N)))
 
     print("generate graphs Start")
-    s = time.time()
+
     for i, embedding in enumerate(embeddings):
         nbrs = NearestNeighbors(
             n_neighbors=(preset_k[-1] + 1), algorithm="ball_tree"
@@ -59,12 +38,6 @@ def generate_graphs(embeddings: List[np.ndarray]) -> Dict[int, List[nx.Graph]]:
                     for j in range(1, k + 1)
                 ]
             )
-    e = time.time()
-    with open("./mnist_time.json", "r") as f:
-        time_stamp = json.load(f)
-    with open("./mnist_time.json", "w") as f:
-        time_stamp["generate_graphs"] = f"{e - s:.5f} sec"
-        json.dump(time_stamp, f)
 
     return k_graphs
 
@@ -81,7 +54,7 @@ def get_concave_hull(
 
     return list(
         [
-            (float(c[0]), float(c[1]))
+            (round(float(c[0]), 3), round(float(c[1]), 3))
             for c in concave_hull(
                 MultiPoint(
                     [(float(embedding[i][0]), float(embedding[i][1])) for i in indices]
@@ -118,7 +91,6 @@ def get_fsm_results(
     graphs: Dict[int, List[nx.Graph]], embeddings: List[np.ndarray]
 ) -> List[FSMResult]:
     result = []
-    s = time.time()
     for k in preset_k:
         for ms in preset_min_support:
             subgraphs = get_frequent_subgraphs(graphs[k], ms)
@@ -126,16 +98,13 @@ def get_fsm_results(
             contour_coords = [
                 [
                     get_concave_hull(embeddings[i], subgraphs[j])
-                    for j in range(len(subgraphs))
+                    for j in range(
+                        15 if len(subgraphs) > 15 else len(subgraphs)
+                    )  # len(subgraphs))
                 ]
                 for i in range(len(embeddings))
             ]
             result.append(FSMResult(k, ms, subgraphs, contour_coords))
-    e = time.time()
-    with open("./mnist_time.json", "r") as f:
-        time_stamp = json.load(f)
-    with open("./mnist_time.json", "w") as f:
-        time_stamp["get_FSM"] = f"{e - s:.5f} sec"
-        json.dump(time_stamp, f)
+    print("get_fsm_results Done")
 
     return result

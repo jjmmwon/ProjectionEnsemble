@@ -25,14 +25,20 @@ class TSNEHParamsBody(BaseModel):
 class UMAPHParams:
     n_neighbors: int
     min_dist: float
+    init: Literal["spectral", "random"]
 
     def __dict__(self):
-        return {}
+        return {
+            "init": self.init,
+            "n_neighbors": self.n_neighbors,
+            "min_dist": self.min_dist,
+        }
 
 
 class UMAPHParamsBody(BaseModel):
     n_neighbors: int
     min_dist: float
+    init: Literal["spectral", "random"]
 
 
 @dataclass
@@ -83,7 +89,7 @@ class DRResult:
 
 
 @dataclass
-class EnsembleDRResult:
+class ProjectionEnsembleResult:
     dr_results: List[DRResult]
     fsm_results: List[FSMResult]
 
