@@ -27,15 +27,15 @@ class Sankey {
             .attr('width', this.width + this.margin.left + this.margin.right)
             .attr('height', this.height + this.margin.top + this.margin.bottom);
 
-        this.fsLabel = this.svg
+        this.classLabel = this.svg
             .append('text')
             .attr('transform', `translate(${this.margin.left + 8}, 15)`)
             .attr('text-anchor', 'middle')
             .attr('font-size', '14px')
             .attr('font-weight', 'bold')
-            .text('FS');
+            .text('Class');
 
-        this.classLabel = this.svg
+        this.fsLabel = this.svg
             .append('text')
             .attr(
                 'transform',
@@ -44,7 +44,7 @@ class Sankey {
             .attr('text-anchor', 'middle')
             .attr('font-size', '14px')
             .attr('font-weight', 'bold')
-            .text('Class');
+            .text('FS');
 
         this.container = this.svg
             .append('g')
@@ -61,7 +61,10 @@ class Sankey {
     }
 
     update() {
-        this.labelColorScale = d3.scaleOrdinal([], d3.schemeTableau10);
+        this.labelColorScale = d3.scaleOrdinal(
+            [...new Array(this.labelLength)].map((_, i) => i),
+            d3.schemeTableau10
+        );
 
         this.makeGraph();
 
@@ -154,19 +157,23 @@ class Sankey {
 
         fsNodes = [...new Set(this.storage.groupedData.map((d) => d.FS))];
 
-        fsNodes.length <= 11
-            ? (this.graph.nodes = [...this.labelSet, ...fsNodes])
-            : (this.graph.nodes = [
+        fsNodes.includes('outliers') ? this.graph.nodes.push('outliers') : null;
+
+        fsNodes.includes(this.textureScale.length())
+            ? (this.graph.nodes = [
                   ...this.labelSet,
-                  ...fsNodes.slice(0, 10),
+                  ...fsNodes.slice(0, this.textureScale.length()),
                   'remainders',
-                  'outliers',
-              ]);
+                  ...this.graph.nodes,
+              ])
+            : (this.graph.nodes = [...this.labelSet, ...fsNodes]);
 
         this.nodesMask = [...this.graph.nodes];
 
         this.storage.groupedData
-            .filter((d) => d.FS !== 'outliers' && d.FS > 10)
+            .filter(
+                (d) => d.FS !== 'outliers' && d.FS >= this.textureScale.length()
+            )
             .forEach((d) => {
                 remainders[d.label]
                     ? (remainders[d.label] += d.points.length)
@@ -177,8 +184,8 @@ class Sankey {
             this.graph.nodes.indexOf(d.FS) < 0
                 ? null
                 : this.graph.links.push({
-                      source: this.graph.nodes.indexOf(d.FS),
-                      target: this.graph.nodes.indexOf(d.label),
+                      source: this.graph.nodes.indexOf(d.label),
+                      target: this.graph.nodes.indexOf(d.FS),
                       value: d.points.length,
                   });
         });
@@ -187,8 +194,8 @@ class Sankey {
             .sort()
             .forEach((d) => {
                 this.graph.links.push({
-                    source: this.graph.nodes.indexOf('remainders'),
-                    target: this.graph.nodes.indexOf(d),
+                    source: this.graph.nodes.indexOf(d),
+                    target: this.graph.nodes.indexOf('remainders'),
                     value: remainders[d],
                 });
             });
@@ -225,13 +232,6 @@ class Sankey {
     }
 
     updateToggle(onSet) {
-        this.link
-            .filter((l) => onSet.has(this.nodesMask[l.source.id]))
-            .data()
-            .forEach((d) => {
-                console.log(this.nodesMask[d.target.id], d.value);
-            });
-
         this.link.attr('stroke-opacity', (l) =>
             onSet.has(this.nodesMask[l.source.id]) ||
             onSet.has(this.nodesMask[l.target.id])

@@ -1,18 +1,16 @@
-import { ensembleDR as _ensembleDR, eventHandlers } from './store.js';
+import {
+    projectionEnsemble as _projectionEnsemble,
+    eventHandlers,
+} from './storeFigMode.js';
 import * as d3 from 'd3';
 
 let title, method;
 
-async function ensembleDR() {
-    d3.select('#kRange').property('value', 9);
-    d3.select('#msRange').property('value', 7);
-    d3.select(`#kRangeValue`).text(9);
-    d3.select(`#msRangeValue`).text(7);
-
+async function projectionEnsemble() {
     loading(true);
     title = d3.select('#dataTitle').property('value');
     method = d3.select('#method').property('value');
-    await _ensembleDR(title, method);
+    await _projectionEnsemble(title, method);
     loading(false);
 }
 
@@ -61,4 +59,4 @@ function loading(isLoading) {
         : d3.select('#generateBtn').append('span').text('Generate');
 }
 
-export { ensembleDR, changeMode, changeHyperparams };
+export { projectionEnsemble, changeMode, changeHyperparams };

@@ -57,7 +57,7 @@ class Scatterplot {
         this.header
             .append('span')
             .attr('class', 'badge rounded-pill text-bg-primary me-1')
-            .text(`${this.hyperparameters['init']}`);
+            .text(`random`);
 
         this.svg = this.div.append('svg');
         this.container = this.svg.append('g');
@@ -80,15 +80,10 @@ class Scatterplot {
     }
 
     createScales() {
-        let pMax = Number(this.embedding[0]['x']),
-            pMin = Number(this.embedding[0]['x']);
-
-        this.embedding.forEach((d) => {
-            pMax = pMax < Number(d.x) ? Number(d.x) : pMax;
-            pMin = pMin > Number(d.x) ? Number(d.x) : pMin;
-            pMax = pMax < Number(d.y) ? Number(d.y) : pMax;
-            pMin = pMin > Number(d.y) ? Number(d.y) : pMin;
-        });
+        let [pMin, pMax] = d3.extent([
+            ...this.embedding.map((d) => Number(d.x)),
+            ...this.embedding.map((d) => Number(d.y)),
+        ]);
 
         // set scales
         this.xScale = d3
@@ -133,16 +128,20 @@ class Scatterplot {
 
         this.circles
             .attr('fill', (d) => this.labelColorScale(this.embedding[d].l))
-            .attr('opacity', 0.8)
-            .attr('r', 1.5);
+            .attr('opacity', 0.7)
+            .attr('r', 1);
 
         return this;
     }
 
     drawContour() {
         this.contourCoords =
-            this.storage.contourData[this.id].length > 10
-                ? this.storage.contourData[this.id].slice(0, 10)
+            this.storage.contourData[this.id].length >
+            this.textureScale.length()
+                ? this.storage.contourData[this.id].slice(
+                      0,
+                      this.textureScale.length()
+                  )
                 : this.storage.contourData[this.id];
 
         const line = d3
@@ -152,7 +151,7 @@ class Scatterplot {
 
         this.contours = this.contourGroup
             .selectAll('path')
-            .data(this.contourCoords.slice(0, 10))
+            .data(this.contourCoords.slice(0, 15))
             .join('path');
 
         this.contours
@@ -201,35 +200,24 @@ class Scatterplot {
         this.circleGroup
             .filter((d) => d.change === 'off')
             .selectAll('circle')
-            .attr('r', 1.5)
-            .attr('opacity', 0.05);
+            .attr('opacity', 0.1);
 
         this.circleGroup
             .filter((d) => d.change === 'on')
             .selectAll('circle')
-            .attr('r', 4)
-            .attr('opacity', 0.8);
+            .attr('opacity', 0.7);
 
         this.circleGroup
             .filter((d) => d.change === 'default')
             .selectAll('circle')
-            .attr('r', 1.5)
-            .attr('opacity', 0.8);
+            .attr('opacity', 0.7);
 
-        let toggledContours = [...new Array(10)]
-            .map((_, i) => i)
-            .filter((_, i) => onSet.has(i));
-
-        !toggledContours.length
+        !onSet.size
             ? this.contours
                   .attr('fill-opacity', 0.4)
                   .attr('stroke-opacity', 0.8)
             : this.contours
-                  .attr('fill-opacity', (_, i) =>
-                      toggledContours.includes(i) ? 0.5 : 0.1
-                  )
-                  .attr('stroke-opacity', (_, i) =>
-                      toggledContours.includes(i) ? 1 : 0.1
-                  );
+                  .attr('fill-opacity', (_, i) => (onSet.has(i) ? 0.5 : 0))
+                  .attr('stroke-opacity', (_, i) => (onSet.has(i) ? 1 : 0));
     }
 }

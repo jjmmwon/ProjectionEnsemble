@@ -1,6 +1,6 @@
-import { Heatmap } from './elements/Heatmap.js';
-import { Sankey } from './elements/Sankey.js';
-import { Scatterplot } from './elements/Scatterplot.js';
+import { Heatmap } from './elements/HeatmapFigMode.js';
+import { Sankey } from './elements/SankeyFigMode.js';
+import { Scatterplot } from './elements/ScatterplotFigMode.js';
 import * as d3 from 'd3';
 import textures from 'textures';
 import Papa from 'papaparse';
@@ -102,12 +102,12 @@ realtionView = {
 };
 
 hyperparameterView = {
-    heatmap: new Heatmap('#hpramView', 240, 190),
+    heatmap: new Heatmap('#hpramView', 260, 190),
 
-    add(fsmResult) {
+    add(fsmResult, dataRow) {
         this.heatmap
-            .initialize(eventHandlers)
-            .update(fsmResult)
+            .initialize(eventHandlers, fsmResult)
+            .update(dataRow)
             .highlightCell();
     },
 
@@ -132,15 +132,17 @@ storage = {
         this.labels = data.dr_results[0].embedding.map((d) => d.l);
         this.labelSet = [...new Set(this.labels)].sort();
         this.fsmResult = data.fsm_results;
+        this.kRange = [...new Set(this.fsmResult.map((d) => d.k))];
+        this.k = this.kRange[4];
+        this.minSupport = 7;
         this.updateHyperparams();
     },
 
-    updateHyperparams() {
+    updateHyperparams(k, minSupport) {
+        this.k = k || this.k;
+        this.minSupport = minSupport || this.minSupport;
         this.fsmResult.forEach((fs) => {
-            if (
-                fs.ms == d3.select('#msRange').property('value') &&
-                fs.k == d3.select('#kRange').property('value')
-            ) {
+            if (fs.ms == this.minSupport && fs.k == this.k) {
                 this.contourData = fs.coords;
                 this.subgraphs = fs.subgs;
             }
@@ -191,13 +193,10 @@ storage = {
             });
         });
 
-        console.log(this.groupedData);
-
         return this;
     },
 
     toggleFS(target, onSet) {
-        // set change state of points: 'on', 'off', 'default'
         if (!onSet.has(target)) {
             // toggle on event
             if (!onSet.size) {
@@ -221,7 +220,7 @@ storage = {
                     // toggle off remainders
                     this.groupedData.forEach((d) => {
                         (d.FS !== 'outliers') & (d.FS >= 10)
-                            ? (d.change = 'on')
+                            ? (d.change = 'off')
                             : (d.change = '');
                     });
                 } else {
@@ -292,16 +291,12 @@ eventHandlers = {
     onSet: new Set(),
 
     clickCell: function (args) {
-        d3.select('#kRange').property('value', args.k);
-        d3.select('#msRange').property('value', args.ms);
-        d3.select(`#kRangeValue`).text(args.k);
-        d3.select(`#msRangeValue`).text(args.ms);
-        this.updateViews();
+        this.updateViews(args.k, args.ms);
         return this;
     },
 
-    updateViews: function () {
-        storage.updateHyperparams();
+    updateViews: function (k, minSupport) {
+        storage.updateHyperparams(k, minSupport);
         projectionsView.updateView();
         realtionView.updateView();
         hyperparameterView.updateView();
@@ -329,10 +324,15 @@ eventHandlers = {
 
 textureScale = {
     textures: [
-        textures.paths().d('crosses').thicker(),
-        textures.paths().d('waves').thicker(),
-        textures.paths().d('caps').thicker(),
+        textures.lines().orientation('horizontal').size(7).strokeWidth(2),
+        textures.lines().orientation('vertical').size(6).strokeWidth(1.5),
+        textures.lines().thicker(),
+        textures.lines().orientation('6/8').size(8).strokeWidth(3),
+
         textures.paths().d('squares').thicker(),
+        textures.paths().d('crosses').thicker(),
+        textures.paths().d('caps').thicker(),
+        textures.paths().d('waves').thicker(),
 
         textures
             .lines()
@@ -340,19 +340,14 @@ textureScale = {
             .stroke('white')
             .size(8)
             .strokeWidth(2)
-            .background('rgb(120,120,120)'),
-        textures.lines().orientation('horizontal').size(7).strokeWidth(2),
-
-        textures.lines().thicker(),
-        textures.lines().orientation('6/8').size(8).strokeWidth(3),
-        textures.lines().orientation('vertical').size(6).strokeWidth(1.5),
+            .background('rgb(100,100,100)'),
         textures
             .lines()
             .orientation('vertical')
             .stroke('white')
             .size(8)
             .strokeWidth(2)
-            .background('rgb(160,160,160)'),
+            .background('rgb(100,100,100)'),
     ],
 
     getTexture(i) {
@@ -366,7 +361,7 @@ textureScale = {
     },
 };
 
-async function ensembleDR(title, method) {
+async function projectionEnsemble(title, method) {
     let drResult, fsmResult;
 
     reset();
@@ -377,7 +372,6 @@ async function ensembleDR(title, method) {
             //`http://localhost:50015/v1/preset?title=${title}&method=${method}`
         )
         .then((data) => {
-            console.log(data);
             drResult = data.dr_results;
             fsmResult = data.fsm_results;
 
@@ -387,7 +381,6 @@ async function ensembleDR(title, method) {
 
             storage.add(data);
 
-            console.log(drResult);
             drResult.forEach((e) => {
                 projectionsView.add(
                     method,
@@ -399,7 +392,7 @@ async function ensembleDR(title, method) {
             });
 
             realtionView.add(storage, textureScale);
-            hyperparameterView.add(fsmResult);
+            hyperparameterView.add(fsmResult, drResult[0].embedding.length);
         });
 }
 
@@ -410,4 +403,4 @@ function reset() {
     hyperparameterView.reset();
 }
 
-export { ensembleDR, eventHandlers };
+export { projectionEnsemble, eventHandlers };
