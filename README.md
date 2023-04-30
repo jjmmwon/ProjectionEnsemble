@@ -1,1 +1,1 @@
-# EnsembleDR
+# Projection Ensemble
