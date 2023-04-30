@@ -98,9 +98,7 @@ def get_fsm_results(
             contour_coords = [
                 [
                     get_concave_hull(embeddings[i], subgraphs[j])
-                    for j in range(
-                        15 if len(subgraphs) > 15 else len(subgraphs)
-                    )  # len(subgraphs))
+                    for j in range(15 if len(subgraphs) > 15 else len(subgraphs))
                 ]
                 for i in range(len(embeddings))
             ]

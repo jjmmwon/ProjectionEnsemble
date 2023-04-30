@@ -5,14 +5,15 @@ import time
 import numpy as np
 import pandas as pd
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 
-from ensemble_dr import (
+from projection_ensemble import (
     DRResult,
-    EnsembleDR,
-    EnsembleDRResult,
+    ProjectionEnsemble,
+    ProjectionEnsembleResult,
     Point,
     TSNEHParams,
     TSNEHParamsBody,
@@ -40,8 +41,10 @@ demo_files = {
     "mobile_price": "price_range",
     "fashion-mnist": "label",
     "diabetes": "Diabetes_012",
-    "mnist": "label",
+    "mnist_50000": "label",
     "mnist_500": "label",
+    "mnist_20000": "label",
+    "mnist_10000": "label",
 }
 
 app = FastAPI()
@@ -56,38 +59,26 @@ app.add_middleware(
 
 @app.get("/v1/preset")
 async def v1_preset(title: str, method: PresetMethodNames):
-    # load result from files
-    with open(f"./data/{title}/{method}.json") as f:
-        result = json.load(f)
-    return result
+    return FileResponse(f"./data/{title}/{method}.json")
 
 
 @app.get("/v2/preset")
 async def v2_preset(title: str, method: PresetMethodNames):
-    print("hello")
     # generate new embeddings
     df = pd.read_csv(f"./data/{title}.csv")
     values = df.drop([demo_files[title]], axis=1)
     target = df[demo_files[title]]
-    ensemble_dr = EnsembleDR(values, target)
+    projection_ensemble = ProjectionEnsemble(values, target)
 
     methods = preset_methods[method]
     drs = []
 
-    t_json = {}
-    dr_start = time.time()
     if "tsne" in method:
         drs.extend([FastTSNEWrapper(values.values, hparams) for hparams in preset_methods[method]])  # type: ignore
     elif "umap" in method:
         print("UMAP running")
         drs.extend([UMAPWrapper(values.values, hparams) for hparams in preset_methods[method]])  # type: ignore
         print("UMAP done")
-    dr_end = time.time()
-
-    t_json["tsne_time"] = f"{dr_end - dr_start:.5f} sec"
-
-    with open(f"./mnist_time.json", "w") as f:
-        json.dump(t_json, f)
 
     drs = [drs[0]] + [procrustes(drs[0], dr) for dr in drs[1:]]
 
@@ -103,9 +94,9 @@ async def v2_preset(title: str, method: PresetMethodNames):
         for j in range(len(drs))
     ]
     print("fsm start")
-    fsm_result = ensemble_dr.fit(drs)
+    fsm_result = projection_ensemble.fit(drs)
 
-    result = EnsembleDRResult(dr_results, fsm_result)
+    result = ProjectionEnsembleResult(dr_results, fsm_result)
     with open(f"./data/{title}/{method}.json", "w") as f:
         json.dump(result.__dict__(), f, cls=NumpyEncoder)
 
@@ -115,11 +106,10 @@ async def v2_preset(title: str, method: PresetMethodNames):
 @app.get("/v3/preset")
 async def v3_preset(title: str, method: PresetMethodNames):
     # load embeddings from file
-
     df = pd.read_csv(f"./data/{title}.csv")
     values = df.drop([demo_files[title]], axis=1)
     target = df[demo_files[title]]
-    ensemble_dr = EnsembleDR(values, target)
+    ensemble_dr = ProjectionEnsemble(values, target)
 
     methods = preset_methods[method]
     drs = list(np.float16(np.load(f"./data/{title}/{method}_drs.npy")))
@@ -135,8 +125,8 @@ async def v3_preset(title: str, method: PresetMethodNames):
         for j in range(len(drs))
     ]
     fsm_result = ensemble_dr.fit(drs)
-    result = EnsembleDRResult(dr_results, fsm_result)
-    with open(f"./data/{title}/{method}.json", "w") as f:
+    result = ProjectionEnsembleResult(dr_results, fsm_result)
+    with open(f"./data/{title}/{method}_4.json", "w") as f:
         json.dump(result.__dict__(), f, cls=NumpyEncoder)
 
     return result.__dict__()
