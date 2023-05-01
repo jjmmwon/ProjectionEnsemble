@@ -7,6 +7,10 @@ Although multidimensional projections, such as t-Stochastic Neighbor Embedding (
 To overcome this limitation, we present a relaxed frequent subgraph mining algorithm and a visualization interface to extract and visualize the consistent structures across multiple projections.
 We demonstrate that our system not only identifies trustworthy structures but also detects accidental clustering or separation of data points.
 
+# How to Use Projection Ensemble
+
+
+
 # Live Demo
 
 [Web Demo]
