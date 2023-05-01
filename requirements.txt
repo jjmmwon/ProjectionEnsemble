@@ -1,6 +1,9 @@
 pandas 
 numpy
 scikit-learn
+scipy
 networkx
 fastapi
 uvicorn
+umap-learn
+shapely

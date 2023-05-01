@@ -37,6 +37,8 @@ class NumpyEncoder(json.JSONEncoder):
 demo_files = {
     "mnist_50000": "label",
     "mnist_10000": "label",
+    # add your data files class column name here like:
+    # data file name: class column name
 }
 
 app = FastAPI()
@@ -68,9 +70,7 @@ async def v2_preset(title: str, method: PresetMethodNames):
     if "tsne" in method:
         drs.extend([TSNEWrapper(values.values, hparams) for hparams in preset_methods[method]])  # type: ignore
     elif "umap" in method:
-        print("UMAP running")
         drs.extend([UMAPWrapper(values.values, hparams) for hparams in preset_methods[method]])  # type: ignore
-        print("UMAP done")
 
     drs = [drs[0]] + [procrustes(drs[0], dr) for dr in drs[1:]]
 
@@ -85,40 +85,11 @@ async def v2_preset(title: str, method: PresetMethodNames):
         )
         for j in range(len(drs))
     ]
-    print("fsm start")
+
     fsm_result = projection_ensemble.fit(drs)
 
     result = ProjectionEnsembleResult(dr_results, fsm_result)
     with open(f"./data/{title}/{method}.json", "w") as f:
-        json.dump(result.__dict__(), f, cls=NumpyEncoder)
-
-    return result.__dict__()
-
-
-@app.get("/v3/preset")
-async def v3_preset(title: str, method: PresetMethodNames):
-    # load embeddings from file
-    df = pd.read_csv(f"./data/{title}.csv")
-    values = df.drop([demo_files[title]], axis=1)
-    target = df[demo_files[title]]
-    projection_ensemble = ProjectionEnsemble(values, target)
-
-    methods = preset_methods[method]
-    drs = list(np.float16(np.load(f"./data/{title}/{method}_drs.npy")))
-
-    dr_results = [
-        DRResult(
-            [
-                Point(i, x=float(row[0]), y=float(row[1]), label=str(target[i]))
-                for i, row in enumerate(drs[j])
-            ],
-            methods[j],
-        )
-        for j in range(len(drs))
-    ]
-    fsm_result = projection_ensemble.fit(drs)
-    result = ProjectionEnsembleResult(dr_results, fsm_result)
-    with open(f"./data/{title}/{method}_4.json", "w") as f:
         json.dump(result.__dict__(), f, cls=NumpyEncoder)
 
     return result.__dict__()
