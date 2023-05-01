@@ -5,8 +5,8 @@
         <link rel="icon" type="image/svg+xml" href="/vite.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Projection Ensemble</title>
-      <script type="module" crossorigin src="/ProjectionEnsemble/assets/index-5e7f1af3.js"></script>
-      <link rel="stylesheet" href="/ProjectionEnsemble/assets/index-4ac8d6cd.css">
+      <script type="module" crossorigin src="/ProjectionEnsemble/assets/index-4ea2d2c1.js"></script>
+      <link rel="stylesheet" href="/ProjectionEnsemble/assets/index-2d71cfad.css">
     </head>
     <body class="bg-light d-flex flex-column">
         <header class="px-3">
@@ -15,7 +15,7 @@
             </div>
         </header>
         <main class="container flex-fill px-3">
-            <div class="row g-2" style="height: 100%">
+            <div class="row g-2" style="height: 95%">
                 <div class="col-2">
                     <div
                         class="sidebar d-flex flex-column"
@@ -42,36 +42,14 @@
                                             class="form-select py-1"
                                             aria-label="Default select example"
                                         >
-                                            <option selected value="mnist_500">
-                                                MNIST (500 rows)
-                                            </option>
-                                            <option value="mnist_50000">
+                                            <option
+                                                selected
+                                                value="mnist_50000"
+                                            >
                                                 MNIST (50,000 rows)
-                                            </option>
-                                            <option value="mnist_umap_3">
-                                                MNIST_UMAP(spectral) (50,000
-                                                rows)
-                                            </option>
-                                            <option value="mnist_umap_4">
-                                                MNIST_UMAP(random) (50,000 rows)
                                             </option>
                                             <option value="mnist_20000">
                                                 MNIST (20,000 rows)
-                                            </option>
-                                            <option value="fashion-mnist">
-                                                Fashion-MNIST (5,000 rows)
-                                            </option>
-                                            <option value="breast_cancer">
-                                                Breast Cancer (569 rows)
-                                            </option>
-                                            <option value="milknew">
-                                                Milk Quality (1059 rows)
-                                            </option>
-                                            <option value="mobile_price">
-                                                Mobile Price (2000 rows)
-                                            </option>
-                                            <option value="diabetes">
-                                                Diabetes (15000 rows)
                                             </option>
                                         </select>
                                     </div>
@@ -86,21 +64,11 @@
                                             class="form-select py-1"
                                             aria-label="Default select example"
                                         >
-                                            <option selected value="umap10">
-                                                UMAP (10 projections)
-                                            </option>
-                                            <option value="tsne10">
+                                            <option selected value="tsne10">
                                                 t-SNE (10 projections)
                                             </option>
-
-                                            <option value="tsne20">
-                                                t-SNE (20 projections)
-                                            </option>
-                                            <option value="umap20">
-                                                UMAP (20 projections)
-                                            </option>
-                                            <option value="manual">
-                                                Manual
+                                            <option value="umap10">
+                                                UMAP (10 projections)
                                             </option>
                                         </select>
                                     </div>
@@ -125,36 +93,14 @@
                                 <div
                                     class="d-flex justify-content-between align-items-center"
                                 >
-                                    <div class="rangeLabel">K</div>
-                                    <input
-                                        type="range"
-                                        class="form-range hpramRange"
-                                        min="5"
-                                        max="15"
-                                        step="2"
-                                        value="7"
-                                        id="kRange"
-                                    />
                                     <div class="rangeValue" id="kRangeValue">
-                                        8
+                                        13
                                     </div>
                                 </div>
 
                                 <div
                                     class="d-flex justify-content-between align-items-center pb-2"
                                 >
-                                    <div class="rangeLabel fw-bold">
-                                        Support
-                                    </div>
-                                    <input
-                                        type="range"
-                                        class="form-range hpramRange"
-                                        min="6"
-                                        max="10"
-                                        step="1"
-                                        value="7"
-                                        id="msRange"
-                                    />
                                     <div
                                         class="rangeValue fw-bold"
                                         id="msRangeValue"
