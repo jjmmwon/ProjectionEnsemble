@@ -368,8 +368,8 @@ async function projectionEnsemble(title, method) {
 
     await d3
         .json(
-            `${config.base}/data/${title}/${method}.json`
-            //`http://localhost:50015/v1/preset?title=${title}&method=${method}`
+            //`${config.base}/data/${title}/${method}.json`
+            `http://localhost:50015/v2/preset?title=${title}&method=${method}`
         )
         .then((data) => {
             drResult = data.dr_results;

@@ -1,7 +1,7 @@
 import {
     projectionEnsemble as _projectionEnsemble,
     eventHandlers,
-} from './storeFigMode.js';
+} from './store.js';
 import * as d3 from 'd3';
 
 let title, method;
