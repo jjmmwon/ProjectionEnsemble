@@ -1,4 +1,4 @@
-# ProjectionEnsemble: Visualizing the Robust Structures of Multidimensional Projections
+# Projection Ensemble: Visualizing the Robust Structures of Multidimensional Projections
 
 ![interface](https://user-images.githubusercontent.com/98008363/235410453-d19917b0-cd02-490a-916b-5292106a0287.png)
 
