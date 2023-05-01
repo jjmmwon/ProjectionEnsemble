@@ -9,9 +9,9 @@ We demonstrate that our system not only identifies trustworthy structures but al
 
 # How to use the Projection Ensemble
 
-The Projection Ensemble is implemented using D3.js, and served as npm project.
-It requires python backend server using FastAPI.
-To use it, follow the instructions below.
+The Projection Ensemble is implemented using D3.js and is served as an npm project.
+To use it, you'll need to set up a python backend server using FastAPI.
+Follow the instructions below to get started.
 
 Clone this repository:
 ```Bash
