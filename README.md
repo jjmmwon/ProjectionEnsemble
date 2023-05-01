@@ -7,17 +7,34 @@ Although multidimensional projections, such as t-Stochastic Neighbor Embedding (
 To overcome this limitation, we present a relaxed frequent subgraph mining algorithm and a visualization interface to extract and visualize the consistent structures across multiple projections.
 We demonstrate that our system not only identifies trustworthy structures but also detects accidental clustering or separation of data points.
 
-# Development
+# How to use the Projection Ensemble
 
-install node.js
+The Projection Ensemble is implemented using D3.js, and served as npm project.
+It requires python backend server using FastAPI.
+To use it, follow the instructions below.
 
-Clone this Repository
+Clone this repository:
+```Bash
+git clone https://github.com/jjmmwon/ProjectionEnsemble.git
+cd ProjectionEnsemble
 ```
-git clone
+Install the dependencies and requirements:
+```Bash
+pnpm install
+pip install -r requirements.txt
+```
+Inject your data to the project and adjust some codes:
+1) inject your data into the data directory and add your data file name to data select tag in the index.html
+2) add data file name and class column name into demo_files dictionary in app.py
+3) adjust your own presets in preset.py
 
-
+Run the FastAPI server and the dev server:
+```Bash
+python main.py
+npm run dev
 ```
 
+Then explore your data through the system.
 
 
 # Live Demo
