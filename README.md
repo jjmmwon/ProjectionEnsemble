@@ -24,9 +24,9 @@ pnpm install
 pip install -r requirements.txt
 ```
 Inject your data to the project and adjust some codes:
-1) inject your data into the data directory and add your data file name to data select tag in the index.html
-2) add data file name and class column name into demo_files dictionary in app.py
-3) adjust your own presets in preset.py
+1) Inject your data into the data directory and add your data file name to data select tag in the index.html
+2) Add data file name and class column name into demo_files dictionary in app.py
+3) Adjust your own presets in preset.py
 
 Run the FastAPI server and the dev server:
 ```Bash
