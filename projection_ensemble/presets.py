@@ -27,11 +27,12 @@ preset_methods: Dict[PresetMethodNames, Union[List[TSNEHParams], List[UMAPHParam
         TSNEHParams(initialization="random", perplexity=45, learning_rate="auto")
         for _ in range(10)
     ],
-    "tsne20": [
+    "tsne20":[
         TSNEHParams(initialization="random", perplexity=45, learning_rate="auto")
         for _ in range(20)
     ],
-    "umap10": [UMAPHParams(n_neighbors=30, min_dist=0.15, init="spectral") for _ in range(10)], 
-    "umap20": [UMAPHParams(n_neighbors=15, min_dist=0.1) for _ in range(20)],
+    "umap10": [UMAPHParams(n_neighbors=30, min_dist=0.15, init="spectral") for _ in range(10)],
+    
+    "umap20": [UMAPHParams(n_neighbors=15, min_dist=0.1, init="spectral") for _ in range(20)],
 }
     

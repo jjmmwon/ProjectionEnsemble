@@ -1,9 +1,9 @@
 import json
 from typing import Union
-import time
 
 import numpy as np
 import pandas as pd
+
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -21,7 +21,6 @@ from projection_ensemble import (
     UMAPHParamsBody,
     UMAPWrapper,
     TSNEWrapper,
-    FastTSNEWrapper,
     procrustes,
     preset_methods,
     PresetMethodNames,
@@ -36,14 +35,7 @@ class NumpyEncoder(json.JSONEncoder):
 
 
 demo_files = {
-    "breast_cancer": "diagnosis",
-    "milknew": "Grade",
-    "mobile_price": "price_range",
-    "fashion-mnist": "label",
-    "diabetes": "Diabetes_012",
     "mnist_50000": "label",
-    "mnist_500": "label",
-    "mnist_20000": "label",
     "mnist_10000": "label",
 }
 
@@ -74,7 +66,7 @@ async def v2_preset(title: str, method: PresetMethodNames):
     drs = []
 
     if "tsne" in method:
-        drs.extend([FastTSNEWrapper(values.values, hparams) for hparams in preset_methods[method]])  # type: ignore
+        drs.extend([TSNEWrapper(values.values, hparams) for hparams in preset_methods[method]])  # type: ignore
     elif "umap" in method:
         print("UMAP running")
         drs.extend([UMAPWrapper(values.values, hparams) for hparams in preset_methods[method]])  # type: ignore
@@ -109,7 +101,7 @@ async def v3_preset(title: str, method: PresetMethodNames):
     df = pd.read_csv(f"./data/{title}.csv")
     values = df.drop([demo_files[title]], axis=1)
     target = df[demo_files[title]]
-    ensemble_dr = ProjectionEnsemble(values, target)
+    projection_ensemble = ProjectionEnsemble(values, target)
 
     methods = preset_methods[method]
     drs = list(np.float16(np.load(f"./data/{title}/{method}_drs.npy")))
@@ -124,7 +116,7 @@ async def v3_preset(title: str, method: PresetMethodNames):
         )
         for j in range(len(drs))
     ]
-    fsm_result = ensemble_dr.fit(drs)
+    fsm_result = projection_ensemble.fit(drs)
     result = ProjectionEnsembleResult(dr_results, fsm_result)
     with open(f"./data/{title}/{method}_4.json", "w") as f:
         json.dump(result.__dict__(), f, cls=NumpyEncoder)
