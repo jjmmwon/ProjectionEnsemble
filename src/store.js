@@ -1,6 +1,6 @@
-import { Heatmap } from './elements/HeatmapFigMode.js';
-import { Sankey } from './elements/SankeyFigMode.js';
-import { Scatterplot } from './elements/ScatterplotFigMode.js';
+import { Heatmap } from './elements/Heatmap.js';
+import { Sankey } from './elements/Sankey.js';
+import { Scatterplot } from './elements/Scatterplot.js';
 import * as d3 from 'd3';
 import textures from 'textures';
 import Papa from 'papaparse';
@@ -368,8 +368,8 @@ async function projectionEnsemble(title, method) {
 
     await d3
         .json(
-            //`${config.base}/data/${title}/${method}.json`
-            `http://localhost:50015/v2/preset?title=${title}&method=${method}`
+            `${config.base}/data/${title}/${method}.json`
+            //`http://localhost:50005/v1/preset?title=${title}&method=${method}`
         )
         .then((data) => {
             drResult = data.dr_results;

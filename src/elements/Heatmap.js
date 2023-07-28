@@ -135,7 +135,9 @@ class Heatmap {
             .style('alignment-baseline', 'middle')
             .style('font-size', '12px')
             .style('font-weight', 'bold')
-            .style('fill', 'black')
+            .style('fill', (_, i) =>
+                this.colorScale(this.subgLength[i]) > 0.5 ? 'white' : 'black'
+            )
             .text((_, i) => this.subgLength[i])
             .on('click', (event) => this.clickCell(event));
 
