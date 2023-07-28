@@ -1,4 +1,4 @@
-# ProjectionEnsemble: Visualizing the Robust Structures of Multidimensional Projections
+# Projection Ensemble: Visualizing the Robust Structures of Multidimensional Projections
 
 ![interface](https://user-images.githubusercontent.com/98008363/235410453-d19917b0-cd02-490a-916b-5292106a0287.png)
 
@@ -9,15 +9,31 @@ We demonstrate that our system not only identifies trustworthy structures but al
 
 # Development
 
-install node.js
+The Projection Ensemble is implemented using D3.js and is served as an npm project.
+To use it, you'll need to set up a python backend server using FastAPI.
+Follow the instructions below to get started.
 
-Clone this Repository
+Clone this repository:
+```Bash
+git clone https://github.com/jjmmwon/ProjectionEnsemble.git
+cd ProjectionEnsemble
 ```
-git clone
-
-
+Install the dependencies and requirements:
+```Bash
+## I recommend you to use python virtual environment using conda
+conda create -n projection_ensemble python=3.9
+conda activate projection_ensemble
+pnpm install
+pip install -r requirements.txt
 ```
 
+Run the FastAPI server and the dev server:
+```Bash
+python main.py
+npm run dev
+```
+
+Then explore your data through the system.
 
 
 # Live Demo
