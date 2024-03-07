@@ -43,13 +43,27 @@ Then explore your data through the system.
 
 # Reference
 
-**Projection Ensemble: Visualizing the Robust Structures of Multidimensional Projections**
+>Jung, Myeongwon, Jiwon Choi, and Jaemin Jo. "Projection Ensemble: Visualizing the Robust Structures of Multidimensional Projections." 2023 IEEE Visualization and Visual Analytics (VIS). IEEE, 2023.
 
-Jung, Myeongwon, Jiwon Choi, and Jaemin Jo
+# Citation
 
-Proceedings of 2023 IEEE Visualization and Visual Analytics (VIS), pp. 46-50, Melbourne, Austrailia, 2023.
+```bibtex
+@inproceedings{jung2023projection,
+  title={Projection Ensemble: Visualizing the Robust Structures of Multidimensional Projections},
+  author={Jung, Myeongwon and Choi, Jiwon and Jo, Jaemin},
+  booktitle={2023 IEEE Visualization and Visual Analytics (VIS)},
+  pages={46--50},
+  year={2023},
+  organization={IEEE}
+}
+```
 
+# Contributors
 
+[Myeongwon Jung], [Jiwon Choi], and [Jaemin Jo]
 
 
 [Web Demo]: <https://jjmmwon.github.io/ProjectionEnsemble/>
+[Myeongwon Jung]: <https://github.com/jjmmwon>
+[Jiwon Choi]: <https://github.com/jiwnchoi>
+[Jaemin Jo]: <https://github.com/e->
