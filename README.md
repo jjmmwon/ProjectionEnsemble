@@ -43,7 +43,12 @@ Then explore your data through the system.
 
 # Reference
 
-TBA
+**Projection Ensemble: Visualizing the Robust Structures of Multidimensional Projections**
+
+Jung, Myeongwon, Jiwon Choi, and Jaemin Jo
+
+Proceedings of 2023 IEEE Visualization and Visual Analytics (VIS), pp. 46-50, Melbourne, Austrailia, 2023.
+
 
 
 
